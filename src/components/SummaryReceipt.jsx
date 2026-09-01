@@ -1,26 +1,27 @@
-const CONFIDENCE_LABEL = {
-  high: '정보 뚜렷함',
-  medium: '일부 추정 포함',
-  low: '추정 위주',
-}
-
-export default function SummaryReceipt({ result, onReset, isFallback }) {
+export default function SummaryReceipt({ t, result, onReset, isFallback }) {
   const isLowConfidence = result.confidence === 'low'
+  const confidenceLabel = {
+    high: t.confidenceHigh,
+    medium: t.confidenceMedium,
+    low: t.confidenceLow,
+  }[result.confidence]
 
   return (
     <div className="receipt">
       {isLowConfidence && (
         <div className="receipt-retake-banner">
-          <p>사진이 흐리거나 정보가 부족해서 잘 못 읽었어요.</p>
-          <button onClick={onReset}>다시 찍기</button>
+          <p>{t.retakeBanner}</p>
+          <button onClick={onReset}>{t.retake}</button>
         </div>
       )}
 
       <div className="receipt-head">
-        <p className="receipt-label">AI 추정 요약 · 실제 후기 아님</p>
+        <p className={`receipt-label ${result.hasRealReviews ? 'receipt-label-real' : ''}`}>
+          {result.hasRealReviews ? t.receiptRealLabel : t.receiptAiLabel}
+        </p>
         <h2>{result.productName}</h2>
         <p className="receipt-sub">
-          {result.category} · {CONFIDENCE_LABEL[result.confidence] ?? '추정'}
+          {result.category} · {confidenceLabel ?? ''}
         </p>
       </div>
 
@@ -45,12 +46,12 @@ export default function SummaryReceipt({ result, onReset, isFallback }) {
       <div className="receipt-barcode" aria-hidden="true" />
 
       <p className="receipt-disclaimer">
-        사진 속 패키지 정보로 AI가 추정한 내용이에요. 실제 맛·성분은 제품 뒷면을 확인하세요.
-        {isFallback && ' (지금은 데모 데이터로 보여드리고 있어요)'}
+        {result.hasRealReviews ? t.disclaimerReal : t.disclaimerEstimate}
+        {isFallback && ' (demo)'}
       </p>
 
       <button className="receipt-reset" onClick={onReset}>
-        다른 상품 스캔하기
+        {t.resetButton}
       </button>
     </div>
   )

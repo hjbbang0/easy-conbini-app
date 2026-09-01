@@ -1,42 +1,57 @@
 import { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
+import LanguageTabs from './components/LanguageTabs.jsx'
 import PhotoScanCard from './components/PhotoScanCard.jsx'
 import SummaryReceipt from './components/SummaryReceipt.jsx'
+import UnreadableCard from './components/UnreadableCard.jsx'
 import PaywallCard from './components/PaywallCard.jsx'
+import InAppBrowserBanner from './components/InAppBrowserBanner.jsx'
 import LandmarkStrip from './components/LandmarkStrip.jsx'
 import BottomNav from './components/BottomNav.jsx'
-import { MOCK_SCAN_RESULT, COUNTRIES, LANDMARKS, NAV_ITEMS } from './data/mockData.js'
+import CurrencyView from './components/CurrencyView.jsx'
+import RecipeView from './components/RecipeView.jsx'
+import MyView from './components/MyView.jsx'
+import { MOCK_SCAN_RESULT, COUNTRIES, LANDMARKS } from './data/mockData.js'
 import { FREE_SCAN_LIMIT, getScanCount, incrementScanCount, isPremium, setPremium } from './utils/usage.js'
+import { isKakaoInApp } from './utils/browserDetect.js'
+import { getDictionary } from './i18n/translations.js'
 
 export default function App() {
-  const [scanStatus, setScanStatus] = useState('idle') // idle | loading | done | error
+  const [language, setLanguage] = useState('ko')
+  const t = getDictionary(language)
+
+  const [activeTab, setActiveTab] = useState('scan')
+
+  // 스캔 관련 상태
+  const [scanStatus, setScanStatus] = useState('idle') // idle | loading | done | unreadable | error
   const [result, setResult] = useState(null)
   const [isFallback, setIsFallback] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
-  const [countryIndex, setCountryIndex] = useState(0)
-  const [activeTab, setActiveTab] = useState('scan')
+  const [lastProduct, setLastProduct] = useState(null) // 레시피 탭에서 참조
 
+  // 환율 탭에서 선택 중인 나라
+  const [currencyCountry, setCurrencyCountry] = useState(COUNTRIES[0])
+
+  // 사용량/구독 상태
   const [scanCount, setScanCount] = useState(0)
   const [premium, setPremiumState] = useState(false)
+  const [showInAppWarning, setShowInAppWarning] = useState(false)
 
   useEffect(() => {
     setScanCount(getScanCount())
     setPremiumState(isPremium())
+    setShowInAppWarning(isKakaoInApp())
   }, [])
 
-  const country = COUNTRIES[countryIndex]
   const remaining = Math.max(FREE_SCAN_LIMIT - scanCount, 0)
   const isPaywalled = !premium && remaining <= 0
 
   async function handleFileSelected(file) {
-    // 무료 횟수를 다 썼는데 어떤 경로로든 여기까지 왔다면(경쟁 상태 방지) 다시 막기
     if (isPaywalled) return
 
     setScanStatus('loading')
     setErrorMessage(null)
 
-    // 스캔을 "시도"하는 시점에 차감. API 호출 자체가 크레딧을 쓰기 때문에
-    // 결과 성공 여부와 무관하게 여기서 카운트합니다.
     const nextCount = incrementScanCount()
     setScanCount(nextCount)
 
@@ -46,18 +61,26 @@ export default function App() {
       const response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64, mediaType }),
+        body: JSON.stringify({ image: base64, mediaType, language }),
       })
 
       if (!response.ok) throw new Error('scan-api-failed')
 
       const data = await response.json()
+
+      if (data.unreadable) {
+        setScanStatus('unreadable')
+        return
+      }
+
       setResult(data)
+      setLastProduct(data)
       setIsFallback(false)
       setScanStatus('done')
     } catch (err) {
       console.warn('AI 분석 실패, 데모 데이터로 대체:', err)
       setResult(MOCK_SCAN_RESULT)
+      setLastProduct(MOCK_SCAN_RESULT)
       setIsFallback(true)
       setScanStatus('done')
     }
@@ -68,43 +91,69 @@ export default function App() {
     setResult(null)
   }
 
-  function handleCountryCycle() {
-    setCountryIndex((i) => (i + 1) % COUNTRIES.length)
-  }
-
-  // TODO: 실제 결제(Stripe Checkout 등) 완료 콜백에서 setPremium(true)를 호출하도록 교체
   function handleSubscribe() {
     setPremium(true)
     setPremiumState(true)
   }
 
+  function handleResetPremium() {
+    setPremium(false)
+    setPremiumState(false)
+  }
+
   return (
     <div className="app-shell">
       <div className="phone-frame">
-        <Header
-          country={country}
-          onOpenCountryPicker={handleCountryCycle}
-          remaining={remaining}
-          isPremium={premium}
-        />
+        <Header t={t} remaining={remaining} isPremium={premium} />
+        <LanguageTabs language={language} onChange={setLanguage} />
 
         <main className="main-scroll">
-          {isPaywalled && scanStatus !== 'done' ? (
-            <PaywallCard onSubscribe={handleSubscribe} />
-          ) : scanStatus === 'done' && result ? (
-            <SummaryReceipt result={result} onReset={handleReset} isFallback={isFallback} />
-          ) : (
-            <PhotoScanCard
-              status={scanStatus}
-              onFileSelected={handleFileSelected}
-              errorMessage={errorMessage}
+          {showInAppWarning && <InAppBrowserBanner t={t} />}
+
+          {activeTab === 'scan' &&
+            (isPaywalled && scanStatus !== 'done' ? (
+              <PaywallCard t={t} onSubscribe={handleSubscribe} />
+            ) : scanStatus === 'unreadable' ? (
+              <UnreadableCard t={t} onRetake={handleReset} />
+            ) : scanStatus === 'done' && result ? (
+              <SummaryReceipt t={t} result={result} onReset={handleReset} isFallback={isFallback} />
+            ) : (
+              <PhotoScanCard
+                t={t}
+                status={scanStatus}
+                onFileSelected={handleFileSelected}
+                errorMessage={errorMessage}
+              />
+            ))}
+
+          {activeTab === 'currency' && (
+            <CurrencyView
+              t={t}
+              countries={COUNTRIES}
+              selectedCountry={currencyCountry}
+              onSelectCountry={setCurrencyCountry}
+            />
+          )}
+
+          {activeTab === 'recipe' && (
+            <RecipeView t={t} lastProduct={lastProduct} onGoScan={() => setActiveTab('scan')} />
+          )}
+
+          {activeTab === 'my' && (
+            <MyView
+              t={t}
+              language={language}
+              onChangeLanguage={setLanguage}
+              premium={premium}
+              scanCount={scanCount}
+              onResetPremium={handleResetPremium}
             />
           )}
 
           <LandmarkStrip landmarks={LANDMARKS} />
         </main>
 
-        <BottomNav items={NAV_ITEMS} active={activeTab} onChange={setActiveTab} />
+        <BottomNav t={t} active={activeTab} onChange={setActiveTab} />
       </div>
     </div>
   )

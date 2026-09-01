@@ -1,16 +1,16 @@
 :root {
-  /* --- 컬러 토큰 --- */
-  --paper: #faf7f0;
-  --paper-dim: #f1ede2;
-  --ink: #201f1d;
-  --ink-soft: #756f61;
-  --neon: #00c48c;
-  --neon-deep: #049169;
-  --sticker: #ff6b35;
-  --line: #d8d3c7;
-  --line-strong: #b8b2a1;
+  /* --- 컬러 토큰: 흰색/주황/초록 중심 편의점 팔레트 --- */
+  --paper: #ffffff;
+  --paper-dim: #fdf8f2;
+  --ink: #1a1a1a;
+  --ink-soft: #6f6a62;
+  --neon: #00a651; /* 편의점 그린 */
+  --neon-deep: #00803e;
+  --sticker: #ff6b00; /* 편의점 오렌지 */
+  --sticker-deep: #e05e00;
+  --line: #ece5d8;
+  --line-strong: #d8cfbd;
 
-  /* --- 타이포 토큰 --- */
   --font-display: 'Space Grotesk', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
 }
@@ -33,7 +33,6 @@ button {
   font-family: inherit;
 }
 
-/* 반응 축소(모션 최소화) 존중 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -44,7 +43,6 @@ button {
   }
 }
 
-/* --- 앱 프레임 (폰 목업) --- */
 .app-shell {
   width: 100%;
   min-height: 100vh;
@@ -60,7 +58,7 @@ button {
   background: var(--paper);
   border-radius: 28px;
   border: 1px solid var(--line);
-  box-shadow: 0 1px 0 rgba(32, 31, 29, 0.04);
+  box-shadow: 0 1px 0 rgba(26, 26, 26, 0.04);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -68,7 +66,7 @@ button {
 }
 
 /* =====================================================
-   헤더 — 편의점 어닝(차양) 스트라이프 모티프
+   헤더 — 주황/초록 어닝 스트라이프
    ===================================================== */
 .header {
   position: relative;
@@ -89,13 +87,7 @@ button {
 }
 
 .header-content {
-  padding: 20px 20px 22px;
-}
-
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  padding: 18px 20px 20px;
 }
 
 .kicker {
@@ -105,37 +97,49 @@ button {
   letter-spacing: 0.02em;
 }
 
-.country-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px solid rgba(250, 247, 240, 0.35);
-  color: var(--paper);
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.country-pill:hover {
-  border-color: var(--neon);
-}
-
 .header-title {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 26px;
   line-height: 1.28;
-  margin: 14px 0 0;
+  margin: 12px 0 0;
 }
 
 .usage-badge {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   font-size: 11px;
-  color: var(--neon);
+  color: var(--sticker);
   letter-spacing: 0.01em;
+}
+
+/* =====================================================
+   언어 탭
+   ===================================================== */
+.lang-tabs {
+  display: flex;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.lang-tab {
+  flex: 1;
+  min-width: max-content;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.lang-tab.is-active {
+  color: var(--neon-deep);
+  border-bottom-color: var(--neon);
+  font-weight: 600;
 }
 
 /* =====================================================
@@ -211,7 +215,7 @@ button {
 }
 
 .scan-error-text {
-  color: var(--sticker);
+  color: var(--sticker-deep);
   font-size: 13px;
   text-align: center;
   padding: 0 16px;
@@ -238,6 +242,48 @@ button {
 }
 
 /* =====================================================
+   인식 불가 카드
+   ===================================================== */
+.unreadable-card {
+  background: #fff4ec;
+  border: 1.5px solid var(--sticker);
+  border-radius: 18px;
+  padding: 40px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.unreadable-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  margin: 6px 0 0;
+}
+
+.unreadable-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.unreadable-retake {
+  margin-top: 12px;
+  border: none;
+  background: var(--sticker);
+  color: white;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* =====================================================
    영수증 스타일 요약 카드
    ===================================================== */
 .receipt {
@@ -246,12 +292,6 @@ button {
   border-radius: 4px;
   padding: 22px 20px 24px;
   position: relative;
-}
-
-.receipt-label {
-  margin: 0 0 4px;
-  font-size: 11px;
-  color: var(--neon-deep);
 }
 
 .receipt-retake-banner {
@@ -283,6 +323,17 @@ button {
   font-family: var(--font-mono);
   font-size: 11.5px;
   cursor: pointer;
+}
+
+.receipt-label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.receipt-label-real {
+  color: var(--neon-deep);
+  font-weight: 600;
 }
 
 .receipt-head h2 {
@@ -348,14 +399,7 @@ button {
 
 .receipt-tag-caution {
   border-color: var(--sticker);
-  color: var(--sticker);
-}
-
-.receipt-disclaimer {
-  margin: 16px 0 0;
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--ink-soft);
+  color: var(--sticker-deep);
 }
 
 .receipt-barcode {
@@ -371,14 +415,21 @@ button {
   opacity: 0.85;
 }
 
+.receipt-disclaimer {
+  margin: 16px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
 .receipt-reset {
   width: 100%;
   margin-top: 18px;
   padding: 12px;
   border-radius: 999px;
   border: none;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--neon);
+  color: white;
   font-family: var(--font-mono);
   font-size: 13px;
   cursor: pointer;
@@ -389,21 +440,372 @@ button {
 }
 
 /* =====================================================
-   랜드마크 스트립
+   페이월 카드
+   ===================================================== */
+.paywall-card {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 18px;
+  padding: 32px 22px 26px;
+}
+
+.paywall-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  color: var(--sticker);
+}
+
+.paywall-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.3;
+  margin: 10px 0 0;
+}
+
+.paywall-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 14px 0 0;
+}
+
+.paywall-perks {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.paywall-perks li {
+  font-size: 13px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.paywall-perks li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--neon);
+}
+
+.paywall-cta {
+  width: 100%;
+  margin-top: 24px;
+  padding: 13px;
+  border-radius: 999px;
+  border: none;
+  background: var(--sticker);
+  color: white;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.paywall-cta:hover {
+  background: var(--sticker-deep);
+}
+
+.paywall-note {
+  margin: 10px 0 0;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+/* =====================================================
+   환율 탭
+   ===================================================== */
+.currency-view {
+  background: var(--paper-dim);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.currency-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin: 0 0 14px;
+}
+
+.currency-country-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.currency-chip {
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.currency-chip.is-active {
+  background: var(--neon);
+  border-color: var(--neon);
+  color: white;
+  font-weight: 600;
+}
+
+.currency-input-label {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.currency-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.currency-symbol {
+  font-weight: 600;
+  color: var(--sticker-deep);
+}
+
+.currency-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  background: none;
+  min-width: 0;
+}
+
+.currency-result {
+  margin-top: 18px;
+  min-height: 40px;
+}
+
+.currency-status {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.currency-status-error {
+  color: var(--sticker-deep);
+}
+
+.currency-result-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--neon-deep);
+  margin: 0;
+}
+
+.currency-result-unit {
+  font-size: 15px;
+  margin-left: 4px;
+  color: var(--ink-soft);
+}
+
+.currency-note {
+  margin: 14px 0 0;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+/* =====================================================
+   레시피 탭
+   ===================================================== */
+.recipe-view {
+  background: var(--paper-dim);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.recipe-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 40px 20px;
+}
+
+.recipe-empty-text {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.recipe-empty-cta {
+  border: none;
+  background: var(--neon);
+  color: white;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.recipe-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.recipe-product-name {
+  font-size: 13px;
+  color: var(--sticker-deep);
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.recipe-ai-note {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
+
+.recipe-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recipe-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.recipe-item-number {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--neon);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =====================================================
+   마이 탭
+   ===================================================== */
+.my-view {
+  background: var(--paper-dim);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.my-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin: 0 0 14px;
+}
+
+.my-status-card {
+  background: var(--ink);
+  color: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.my-status-line {
+  margin: 0;
+  font-size: 13px;
+}
+
+.my-status-premium {
+  color: var(--sticker);
+  font-weight: 600;
+}
+
+.my-section-label {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+
+.my-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.my-lang-btn {
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.my-lang-btn.is-active {
+  background: var(--neon);
+  border-color: var(--neon);
+  color: white;
+  font-weight: 600;
+}
+
+.my-dev-reset {
+  margin-top: 20px;
+  width: 100%;
+  border: 1px dashed var(--line-strong);
+  background: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+/* =====================================================
+   랜드마크 스트립 — 바운스 애니메이션
    ===================================================== */
 .landmark-strip {
   display: flex;
   justify-content: space-between;
-  padding: 6px 4px 0;
-  color: var(--ink-soft);
+  padding: 6px 10px 0;
 }
 
 .landmark-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 10.5px;
+  animation: landmark-bounce 1.8s ease-in-out infinite;
+}
+
+@keyframes landmark-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 /* =====================================================
@@ -438,88 +840,27 @@ button {
 }
 
 .bottom-nav-item.is-active {
-  color: var(--ink);
+  color: var(--neon-deep);
+  font-weight: 600;
 }
 
 .bottom-nav-item.is-active .bottom-nav-dot {
-  background: var(--neon);
+  background: var(--sticker);
 }
 
 /* =====================================================
-   페이월 카드
+   카톡 인앱 브라우저 안내 배너
    ===================================================== */
-.paywall-card {
-  background: var(--ink);
-  color: var(--paper);
-  border-radius: 18px;
-  padding: 32px 22px 26px;
+.inapp-banner {
+  background: #fff9e6;
+  border: 1px solid #f0d878;
+  border-radius: 10px;
+  padding: 12px 14px;
 }
 
-.paywall-eyebrow {
+.inapp-banner p {
   margin: 0;
-  font-size: 11px;
-  color: var(--sticker);
-}
-
-.paywall-title {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 24px;
-  line-height: 1.3;
-  margin: 10px 0 0;
-}
-
-.paywall-body {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
-  color: rgba(250, 247, 240, 0.75);
-  margin: 14px 0 0;
-}
-
-.paywall-perks {
-  list-style: none;
-  margin: 20px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.paywall-perks li {
-  font-size: 13px;
-  padding-left: 16px;
-  position: relative;
-}
-
-.paywall-perks li::before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  color: var(--neon);
-}
-
-.paywall-cta {
-  width: 100%;
-  margin-top: 24px;
-  padding: 13px;
-  border-radius: 999px;
-  border: none;
-  background: var(--neon);
   color: var(--ink);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.paywall-cta:hover {
-  background: var(--neon-deep);
-  color: var(--paper);
-}
-
-.paywall-note {
-  margin: 10px 0 0;
-  font-size: 10.5px;
-  color: rgba(250, 247, 240, 0.5);
-  text-align: center;
 }

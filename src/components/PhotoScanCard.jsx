@@ -1,12 +1,12 @@
 import { useRef } from 'react'
 
-export default function PhotoScanCard({ status, onFileSelected, errorMessage }) {
+export default function PhotoScanCard({ t, status, onFileSelected, errorMessage }) {
   const inputRef = useRef(null)
 
   function handleChange(e) {
     const file = e.target.files?.[0]
     if (file) onFileSelected(file)
-    e.target.value = '' // 같은 파일 다시 선택해도 onChange 트리거되게
+    e.target.value = ''
   }
 
   return (
@@ -23,23 +23,23 @@ export default function PhotoScanCard({ status, onFileSelected, errorMessage }) 
       {status === 'idle' && (
         <button className="scan-trigger" onClick={() => inputRef.current?.click()}>
           <ScanIcon />
-          <span className="scan-trigger-title">진열대를 비춰보세요</span>
-          <span className="scan-trigger-sub">사진 한 장이면 AI 요약 끝</span>
+          <span className="scan-trigger-title">{t.scanCta}</span>
+          <span className="scan-trigger-sub">{t.scanCtaSub}</span>
         </button>
       )}
 
       {status === 'loading' && (
         <div className="scan-loading">
           <span className="scan-loading-bar" />
-          <p>사진 분석하는 중...</p>
+          <p>{t.scanLoading}</p>
         </div>
       )}
 
       {status === 'error' && (
         <div className="scan-loading">
-          <p className="scan-error-text">{errorMessage ?? '분석에 실패했어요. 다시 시도해주세요.'}</p>
+          <p className="scan-error-text">{errorMessage ?? t.scanErrorDefault}</p>
           <button className="scan-retry" onClick={() => inputRef.current?.click()}>
-            다시 찍기
+            {t.retake}
           </button>
         </div>
       )}
