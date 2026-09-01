@@ -26,9 +26,3 @@ export const COUNTRIES = [
   { code: 'US', name: '미국', currency: 'USD', symbol: '$' },
 ]
 
-export const LANDMARKS = [
-  { id: 'eiffel' },
-  { id: 'tokyo-tower' },
-  { id: 'great-wall' },
-  { id: 'temple' },
-]

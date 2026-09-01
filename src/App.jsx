@@ -6,12 +6,11 @@ import SummaryReceipt from './components/SummaryReceipt.jsx'
 import UnreadableCard from './components/UnreadableCard.jsx'
 import PaywallCard from './components/PaywallCard.jsx'
 import InAppBrowserBanner from './components/InAppBrowserBanner.jsx'
-import LandmarkStrip from './components/LandmarkStrip.jsx'
 import BottomNav from './components/BottomNav.jsx'
 import CurrencyView from './components/CurrencyView.jsx'
 import RecipeView from './components/RecipeView.jsx'
 import MyView from './components/MyView.jsx'
-import { MOCK_SCAN_RESULT, COUNTRIES, LANDMARKS } from './data/mockData.js'
+import { MOCK_SCAN_RESULT, COUNTRIES } from './data/mockData.js'
 import { FREE_SCAN_LIMIT, getScanCount, incrementScanCount, isPremium, setPremium } from './utils/usage.js'
 import { isKakaoInApp } from './utils/browserDetect.js'
 import { getDictionary } from './i18n/translations.js'
@@ -159,8 +158,6 @@ export default function App() {
               onResetPremium={handleResetPremium}
             />
           )}
-
-          <LandmarkStrip landmarks={LANDMARKS} />
         </main>
 
         <BottomNav t={t} active={activeTab} onChange={setActiveTab} />
