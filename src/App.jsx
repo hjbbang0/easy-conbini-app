@@ -16,6 +16,16 @@ import { FREE_SCAN_LIMIT, getScanCount, incrementScanCount, isPremium, setPremiu
 import { isKakaoInApp } from './utils/browserDetect.js'
 import { getDictionary } from './i18n/translations.js'
 
+// 언어마다 다른 CJK 폰트를 써야 글자 모양이 깨지지 않아요 (Latin 전용 폰트는
+// 한글/일본어/중국어 글리프가 아예 없어서 시스템 기본 폰트로 떨어져버려요).
+const DISPLAY_FONT_BY_LANG = {
+  ko: "'Noto Sans KR', sans-serif",
+  ja: "'Noto Sans JP', sans-serif",
+  en: "'Archivo Black', sans-serif",
+  'zh-TW': "'Noto Sans TC', sans-serif",
+  'zh-CN': "'Noto Sans SC', sans-serif",
+}
+
 export default function App() {
   const [language, setLanguage] = useState('ko')
   const t = getDictionary(language)
@@ -103,7 +113,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="phone-frame">
+      <div className="phone-frame" style={{ '--font-display': DISPLAY_FONT_BY_LANG[language] }}>
         <Header t={t} remaining={remaining} isPremium={premium} />
         <LanguageTabs language={language} onChange={setLanguage} />
 

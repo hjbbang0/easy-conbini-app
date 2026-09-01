@@ -1,18 +1,29 @@
 :root {
-  /* --- 컬러 토큰: 흰색/주황/초록 중심 편의점 팔레트 --- */
-  --paper: #ffffff;
-  --paper-dim: #fdf8f2;
-  --ink: #1a1a1a;
-  --ink-soft: #6f6a62;
-  --neon: #00a651; /* 편의점 그린 */
-  --neon-deep: #00803e;
-  --sticker: #ff6b00; /* 편의점 오렌지 */
-  --sticker-deep: #e05e00;
-  --line: #ece5d8;
-  --line-strong: #d8cfbd;
+  /* --- 밤거리 배경 --- */
+  --night: #12181c;
+  --night-deep: #090c0e;
 
-  --font-display: 'Space Grotesk', sans-serif;
+  /* --- 스티커 카드(본문) --- */
+  --paper: #ffffff;
+  --paper-dim: #f2efe8;
+  --ink: #14181a;
+  --ink-soft: #5b6168;
+
+  /* --- 신호색: 초록=간판/실제후기, 주황=가격/주의(항상 평평하게) --- */
+  --neon: #39ff88;
+  --neon-deep: #1fa85c;
+  --neon-glow: rgba(57, 255, 136, 0.45);
+  --sticker: #ff6b00;
+  --sticker-deep: #d65200;
+
+  --line: #14181a; /* 카드 위 두꺼운 스티커 테두리 */
+  --line-dark: rgba(255, 255, 255, 0.14); /* 어두운 면 위의 얇은 구분선 */
+  --line-strong: #14181a;
+
+  --font-display: 'Archivo Black', sans-serif; /* App.jsx에서 언어별로 덮어씀 */
   --font-mono: 'IBM Plex Mono', monospace;
+
+  --sticker-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -23,7 +34,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--paper-dim);
+  background: var(--night-deep);
   color: var(--ink);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
@@ -55,10 +66,10 @@ button {
   width: 100%;
   max-width: 425px;
   min-height: 860px;
-  background: var(--paper);
+  background: var(--night);
   border-radius: 28px;
-  border: 1px solid var(--line);
-  box-shadow: 0 1px 0 rgba(26, 26, 26, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -66,28 +77,23 @@ button {
 }
 
 /* =====================================================
-   헤더 — 주황/초록 어닝 스트라이프
+   헤더 — 밤거리 위 네온 간판. 앱에서 유일하게 빛나는 지점.
    ===================================================== */
 .header {
   position: relative;
-  background: var(--ink);
-  color: var(--paper);
-  padding-top: 10px;
+  padding-top: 22px;
 }
 
 .awning {
-  height: 10px;
-  background: repeating-linear-gradient(
-    115deg,
-    var(--neon) 0 18px,
-    var(--paper) 18px 22px,
-    var(--sticker) 22px 40px,
-    var(--paper) 40px 44px
-  );
+  height: 3px;
+  margin: 0 20px;
+  background: var(--neon);
+  box-shadow: 0 0 10px var(--neon), 0 0 22px var(--neon-glow);
+  border-radius: 2px;
 }
 
 .header-content {
-  padding: 18px 20px 20px;
+  padding: 16px 20px 18px;
 }
 
 .kicker {
@@ -95,14 +101,17 @@ button {
   font-size: 12px;
   color: var(--neon);
   letter-spacing: 0.02em;
+  text-shadow: 0 0 10px var(--neon-glow);
 }
 
 .header-title {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 26px;
-  line-height: 1.28;
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1.32;
   margin: 12px 0 0;
+  color: #ffffff;
+  text-shadow: 0 0 16px rgba(57, 255, 136, 0.25);
 }
 
 .usage-badge {
@@ -117,8 +126,8 @@ button {
    ===================================================== */
 .lang-tabs {
   display: flex;
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
+  background: transparent;
+  border-bottom: 1px solid var(--line-dark);
   overflow-x: auto;
 }
 
@@ -130,16 +139,17 @@ button {
   background: none;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-soft);
+  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   white-space: nowrap;
 }
 
 .lang-tab.is-active {
-  color: var(--neon-deep);
+  color: var(--neon);
   border-bottom-color: var(--neon);
   font-weight: 600;
+  text-shadow: 0 0 8px var(--neon-glow);
 }
 
 /* =====================================================
@@ -150,23 +160,24 @@ button {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 22px;
 }
 
 /* =====================================================
-   스캔 카드
+   스캔 카드 — 평평한 스티커 오브제
    ===================================================== */
 .scan-card {
-  border: 1.5px dashed var(--line-strong);
-  border-radius: 18px;
-  background: var(--paper-dim);
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--sticker-shadow);
 }
 
 .scan-trigger {
   width: 100%;
   background: none;
   border: none;
-  padding: 48px 20px;
+  padding: 46px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -177,8 +188,9 @@ button {
 
 .scan-trigger-title {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 17px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
 }
 
 .scan-trigger-sub {
@@ -187,7 +199,7 @@ button {
 }
 
 .scan-loading {
-  padding: 56px 20px;
+  padding: 54px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -198,11 +210,12 @@ button {
 
 .scan-loading-bar {
   width: 120px;
-  height: 3px;
-  background: var(--line);
+  height: 4px;
+  background: var(--paper-dim);
   border-radius: 2px;
   position: relative;
   overflow: hidden;
+  border: 1px solid var(--line);
 }
 
 .scan-loading-bar::after {
@@ -210,7 +223,7 @@ button {
   position: absolute;
   inset: 0;
   width: 40%;
-  background: var(--neon);
+  background: var(--sticker);
   animation: sweep 1s ease-in-out infinite;
 }
 
@@ -222,8 +235,8 @@ button {
 }
 
 .scan-retry {
-  border: 1px solid var(--line-strong);
-  background: none;
+  border: 2px solid var(--line);
+  background: var(--paper);
   border-radius: 999px;
   padding: 8px 16px;
   font-family: var(--font-mono);
@@ -245,22 +258,24 @@ button {
    인식 불가 카드
    ===================================================== */
 .unreadable-card {
-  background: #fff4ec;
-  border: 1.5px solid var(--sticker);
-  border-radius: 18px;
-  padding: 40px 24px 32px;
+  background: var(--paper);
+  border: 3px solid var(--sticker);
+  border-radius: 20px;
+  padding: 38px 24px 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 10px;
+  box-shadow: var(--sticker-shadow);
 }
 
 .unreadable-title {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 17px;
   margin: 6px 0 0;
+  color: var(--ink);
 }
 
 .unreadable-body {
@@ -272,13 +287,13 @@ button {
 
 .unreadable-retake {
   margin-top: 12px;
-  border: none;
+  border: 2px solid var(--line);
   background: var(--sticker);
   color: white;
   border-radius: 999px;
   padding: 10px 22px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
   cursor: pointer;
 }
@@ -288,10 +303,11 @@ button {
    ===================================================== */
 .receipt {
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 4px;
+  border: 3px solid var(--line);
+  border-radius: 14px;
   padding: 22px 20px 24px;
   position: relative;
+  box-shadow: var(--sticker-shadow);
 }
 
 .receipt-retake-banner {
@@ -300,7 +316,7 @@ button {
   justify-content: space-between;
   gap: 10px;
   background: #fff3ec;
-  border: 1px solid var(--sticker);
+  border: 2px solid var(--sticker);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 16px;
@@ -338,8 +354,10 @@ button {
 
 .receipt-head h2 {
   font-family: var(--font-display);
+  font-weight: 700;
   margin: 0;
-  font-size: 20px;
+  font-size: 19px;
+  color: var(--ink);
 }
 
 .receipt-sub {
@@ -351,11 +369,8 @@ button {
 .receipt-divider {
   height: 1px;
   margin: 16px 0;
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--line-strong) 0 6px,
-    transparent 6px 11px
-  );
+  background-image: repeating-linear-gradient(to right, var(--line) 0 6px, transparent 6px 11px);
+  opacity: 0.5;
 }
 
 .receipt-summary {
@@ -372,6 +387,7 @@ button {
   line-height: 1.5;
   padding-left: 14px;
   position: relative;
+  color: var(--ink);
 }
 
 .receipt-summary li::before {
@@ -391,7 +407,7 @@ button {
 
 .receipt-tag {
   font-size: 11.5px;
-  border: 1px solid var(--line-strong);
+  border: 1.5px solid var(--line);
   border-radius: 999px;
   padding: 4px 10px;
   color: var(--ink-soft);
@@ -399,12 +415,13 @@ button {
 
 .receipt-tag-caution {
   border-color: var(--sticker);
+  background: #fff3ec;
   color: var(--sticker-deep);
 }
 
 .receipt-barcode {
   margin-top: 20px;
-  height: 34px;
+  height: 30px;
   background-image: repeating-linear-gradient(
     to right,
     var(--ink) 0 2px,
@@ -427,46 +444,51 @@ button {
   margin-top: 18px;
   padding: 12px;
   border-radius: 999px;
-  border: none;
+  border: 2px solid var(--line);
   background: var(--neon);
-  color: white;
+  color: var(--ink);
   font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 13px;
   cursor: pointer;
 }
 
 .receipt-reset:hover {
   background: var(--neon-deep);
+  color: white;
 }
 
 /* =====================================================
    페이월 카드
    ===================================================== */
 .paywall-card {
-  background: var(--ink);
-  color: var(--paper);
-  border-radius: 18px;
-  padding: 32px 22px 26px;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  padding: 30px 22px 24px;
+  box-shadow: var(--sticker-shadow);
 }
 
 .paywall-eyebrow {
   margin: 0;
   font-size: 11px;
-  color: var(--sticker);
+  color: var(--sticker-deep);
+  font-weight: 600;
 }
 
 .paywall-title {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 24px;
+  font-weight: 700;
+  font-size: 22px;
   line-height: 1.3;
   margin: 10px 0 0;
+  color: var(--ink);
 }
 
 .paywall-body {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--ink-soft);
   margin: 14px 0 0;
 }
 
@@ -481,27 +503,29 @@ button {
 
 .paywall-perks li {
   font-size: 13px;
-  padding-left: 16px;
+  padding-left: 18px;
   position: relative;
+  color: var(--ink);
 }
 
 .paywall-perks li::before {
   content: '✓';
   position: absolute;
   left: 0;
-  color: var(--neon);
+  color: var(--neon-deep);
+  font-weight: 700;
 }
 
 .paywall-cta {
   width: 100%;
-  margin-top: 24px;
+  margin-top: 22px;
   padding: 13px;
   border-radius: 999px;
-  border: none;
+  border: 2px solid var(--line);
   background: var(--sticker);
   color: white;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   cursor: pointer;
 }
@@ -513,7 +537,7 @@ button {
 .paywall-note {
   margin: 10px 0 0;
   font-size: 10.5px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--ink-soft);
   text-align: center;
 }
 
@@ -521,15 +545,19 @@ button {
    환율 탭
    ===================================================== */
 .currency-view {
-  background: var(--paper-dim);
-  border-radius: 16px;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 18px;
   padding: 20px;
+  box-shadow: var(--sticker-shadow);
 }
 
 .currency-title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 17px;
   margin: 0 0 14px;
+  color: var(--ink);
 }
 
 .currency-country-row {
@@ -540,7 +568,7 @@ button {
 }
 
 .currency-chip {
-  border: 1px solid var(--line-strong);
+  border: 2px solid var(--line);
   background: var(--paper);
   border-radius: 999px;
   padding: 6px 12px;
@@ -551,9 +579,9 @@ button {
 
 .currency-chip.is-active {
   background: var(--neon);
-  border-color: var(--neon);
-  color: white;
-  font-weight: 600;
+  border-color: var(--line);
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .currency-input-label {
@@ -567,14 +595,14 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--paper);
-  border: 1px solid var(--line-strong);
+  background: var(--paper-dim);
+  border: 2px solid var(--line);
   border-radius: 10px;
   padding: 10px 14px;
 }
 
 .currency-symbol {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--sticker-deep);
 }
 
@@ -586,6 +614,7 @@ button {
   font-size: 18px;
   background: none;
   min-width: 0;
+  color: var(--ink);
 }
 
 .currency-result {
@@ -604,7 +633,7 @@ button {
 
 .currency-result-value {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 28px;
   color: var(--neon-deep);
   margin: 0;
@@ -626,9 +655,11 @@ button {
    레시피 탭
    ===================================================== */
 .recipe-view {
-  background: var(--paper-dim);
-  border-radius: 16px;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 18px;
   padding: 20px;
+  box-shadow: var(--sticker-shadow);
 }
 
 .recipe-empty {
@@ -637,7 +668,7 @@ button {
   align-items: center;
   text-align: center;
   gap: 14px;
-  padding: 40px 20px;
+  padding: 36px 16px;
 }
 
 .recipe-empty-text {
@@ -647,27 +678,29 @@ button {
 }
 
 .recipe-empty-cta {
-  border: none;
+  border: 2px solid var(--line);
   background: var(--neon);
-  color: white;
+  color: var(--ink);
   border-radius: 999px;
   padding: 10px 22px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
   cursor: pointer;
 }
 
 .recipe-title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 17px;
   margin: 0 0 4px;
+  color: var(--ink);
 }
 
 .recipe-product-name {
   font-size: 13px;
   color: var(--sticker-deep);
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 6px;
 }
 
@@ -690,11 +723,13 @@ button {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  background: var(--paper);
+  background: var(--paper-dim);
+  border: 1.5px solid var(--line);
   border-radius: 10px;
   padding: 12px;
   font-size: 13px;
   line-height: 1.5;
+  color: var(--ink);
 }
 
 .recipe-item-number {
@@ -702,10 +737,10 @@ button {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--neon);
+  background: var(--sticker);
   color: white;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -715,20 +750,23 @@ button {
    마이 탭
    ===================================================== */
 .my-view {
-  background: var(--paper-dim);
-  border-radius: 16px;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 18px;
   padding: 20px;
+  box-shadow: var(--sticker-shadow);
 }
 
 .my-title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 17px;
   margin: 0 0 14px;
+  color: var(--ink);
 }
 
 .my-status-card {
-  background: var(--ink);
-  color: white;
+  background: var(--night);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
@@ -737,11 +775,13 @@ button {
 .my-status-line {
   margin: 0;
   font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .my-status-premium {
-  color: var(--sticker);
-  font-weight: 600;
+  color: var(--neon);
+  font-weight: 700;
+  text-shadow: 0 0 8px var(--neon-glow);
 }
 
 .my-section-label {
@@ -757,7 +797,7 @@ button {
 }
 
 .my-lang-btn {
-  border: 1px solid var(--line-strong);
+  border: 2px solid var(--line);
   background: var(--paper);
   border-radius: 8px;
   padding: 10px;
@@ -768,15 +808,14 @@ button {
 
 .my-lang-btn.is-active {
   background: var(--neon);
-  border-color: var(--neon);
-  color: white;
-  font-weight: 600;
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .my-dev-reset {
   margin-top: 20px;
   width: 100%;
-  border: 1px dashed var(--line-strong);
+  border: 2px dashed var(--line);
   background: none;
   border-radius: 8px;
   padding: 10px;
@@ -786,25 +825,37 @@ button {
 }
 
 /* =====================================================
-   랜드마크 스트립 — 바운스 애니메이션
+   랜드마크 — 야간 조명 아래 매달린 스티커 참
    ===================================================== */
 .landmark-strip {
   display: flex;
   justify-content: space-between;
-  padding: 6px 10px 0;
+  padding: 4px 14px 0;
 }
 
-.landmark-item {
-  animation: landmark-bounce 1.8s ease-in-out infinite;
+.landmark-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: landmark-sway 2.6s ease-in-out infinite;
 }
 
-@keyframes landmark-bounce {
+.landmark-icon {
+  display: flex;
+}
+
+@keyframes landmark-sway {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) rotate(-3deg);
   }
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-6px) rotate(3deg);
   }
 }
 
@@ -813,8 +864,8 @@ button {
    ===================================================== */
 .bottom-nav {
   display: flex;
-  border-top: 1px solid var(--line);
-  background: var(--paper);
+  border-top: 1px solid var(--line-dark);
+  background: var(--night);
 }
 
 .bottom-nav-item {
@@ -828,7 +879,7 @@ button {
   gap: 5px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-soft);
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
 }
 
@@ -836,16 +887,18 @@ button {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--line-strong);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .bottom-nav-item.is-active {
-  color: var(--neon-deep);
+  color: var(--neon);
   font-weight: 600;
+  text-shadow: 0 0 6px var(--neon-glow);
 }
 
 .bottom-nav-item.is-active .bottom-nav-dot {
   background: var(--sticker);
+  box-shadow: 0 0 6px var(--sticker);
 }
 
 /* =====================================================
@@ -853,7 +906,7 @@ button {
    ===================================================== */
 .inapp-banner {
   background: #fff9e6;
-  border: 1px solid #f0d878;
+  border: 2px solid #f0d878;
   border-radius: 10px;
   padding: 12px 14px;
 }
@@ -862,5 +915,5 @@ button {
   margin: 0;
   font-size: 12px;
   line-height: 1.6;
-  color: var(--ink);
+  color: #3a2f0a;
 }
