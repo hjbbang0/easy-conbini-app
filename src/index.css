@@ -94,6 +94,20 @@ button:active {
     border: none;
     box-shadow: none;
   }
+
+  /* 콘텐츠 길이와 상관없이 하단 탭바는 항상 화면 진짜 바닥에 고정 */
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+  }
+
+  /* 고정된 하단 탭바에 마지막 콘텐츠가 가려지지 않도록 여백 확보 */
+  .main-scroll {
+    padding-bottom: 100px;
+  }
 }
 
 /* =====================================================
