@@ -61,8 +61,8 @@ button:active {
 
 .app-shell {
   width: 100%;
-  height: 100dvh;
-  height: var(--app-vh, 100dvh);
+  min-height: 100vh;
+  background: var(--night);
   display: flex;
   justify-content: center;
   padding: 32px 16px;
@@ -71,7 +71,6 @@ button:active {
 .phone-frame {
   width: 100%;
   max-width: 425px;
-  height: 100%;
   background: var(--night);
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -90,7 +89,6 @@ button:active {
 
   .phone-frame {
     max-width: 100%;
-    height: 100%;
     border-radius: 0;
     border: none;
     box-shadow: none;
@@ -177,13 +175,9 @@ button:active {
    메인 스크롤 영역
    ===================================================== */
 .main-scroll {
-  flex: 1;
-  min-height: 0; /* flex 자식이 내용물 때문에 부모를 밀어내지 않도록 */
-  overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 내용이 화면보다 짧으면 가운데로, 길면 자연스럽게 스크롤 */
   gap: 22px;
 }
 

@@ -55,22 +55,6 @@ export default function App() {
     setShowInAppWarning(isKakaoInApp())
   }, [])
 
-  // 일부 모바일 브라우저는 100dvh를 초기 로딩 시 부정확하게 계산해서
-  // 화면보다 큰 높이로 그려질 수 있어요. window.innerHeight를 직접 재서
-  // CSS 변수로 강제 적용하면 어떤 브라우저에서도 실제 화면에 딱 맞아요.
-  useEffect(() => {
-    function setAppHeight() {
-      document.documentElement.style.setProperty('--app-vh', `${window.innerHeight}px`)
-    }
-    setAppHeight()
-    window.addEventListener('resize', setAppHeight)
-    window.addEventListener('orientationchange', setAppHeight)
-    return () => {
-      window.removeEventListener('resize', setAppHeight)
-      window.removeEventListener('orientationchange', setAppHeight)
-    }
-  }, [])
-
   const remaining = Math.max(FREE_SCAN_LIMIT - scanCount, 0)
   const isPaywalled = !premium && remaining <= 0
   // 결과 카드가 떠 있을 때는 헤더/언어탭을 숨기고 결과 + 하단 탭바만 꽉 채워서 보여줘요.
