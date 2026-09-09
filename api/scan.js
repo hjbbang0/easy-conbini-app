@@ -1,0 +1,115 @@
+// /api/scan (1단계: 빠른 식별)
+// 사진을 보고 상품을 즉시 식별만 합니다. 웹 검색을 하지 않아서 훨씬 빨라요.
+// 실제 후기는 /api/reviews가 이어서 백그라운드로 찾아요.
+// 사진 자체를 못 읽으면 절대 추측하지 않고 재촬영을 요청합니다.
+
+const LANGUAGE_NAMES = {
+  ko: '한국어',
+  ja: '일본어(日本語)',
+  en: 'English',
+  'zh-TW': '번체 중국어(繁體中文, 대만식)',
+  'zh-CN': '간체 중국어(简体中文)',
+}
+
+function buildSystemPrompt(languageLabel) {
+  return `너는 해외여행 중인 관광객이 편의점/마트 진열대에서 낯선 상품을 스캔했을 때
+핵심 정보를 3초 안에 파악하도록 돕는 어시스턴트야. 모든 응답은 ${languageLabel}로 작성해.
+
+절차:
+1. 사진을 먼저 확인해. 너무 흐리거나, 어둡거나, 상품이 잘려서 이름이나 종류조차
+   확신할 수 없다면 절대 추측하지 마. 이 경우 다른 필드 없이 정확히 이 JSON만 응답해:
+   {"unreadable": true}
+2. 상품을 식별할 수 있다면(이름, 브랜드, 맛, 카테고리), highlights는 사진에 실제로
+   보이는 텍스트/아이콘/그래픽만 근거로 작성해. 후기가 있는 척하지 마 —
+   hasRealReviews는 항상 false로 고정해.
+3. cautionTags: 알레르기 유발 성분(해산물, 유제품, 견과류 등), 매운맛 표시, 용량 관련
+   문구가 보이면 짚어줘. 없으면 빈 배열.
+4. recipeIdeas: 이 상품을 다른 편의점 조합 상품과 함께 먹거나 조리하는 아이디어를
+   2~3개 제안해. 이건 너의 창의적 제안이지 실제 인기 순위가 아니야 — 그런 척하지 마.
+
+아래 스키마 외의 텍스트(설명, 마크다운 코드블록 기호 등)는 절대 포함하지 마.
+응답은 반드시 순수 JSON 하나여야 해.
+
+스키마:
+{
+  "unreadable": false,
+  "productName": string,
+  "category": string,          // 상품 종류. 원산지 국가는 패키지에 명시된 경우에만 덧붙이고, 확실치 않으면 추측하지 마.
+  "confidence": "high" | "medium" | "low",
+  "hasRealReviews": false,
+  "highlights": string[],      // 2~4개. 패키지 관찰 요약.
+  "cautionTags": string[],
+  "recipeIdeas": string[]      // 2~3개
+}`
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'POST만 지원해요.' })
+    return
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    res.status(500).json({ error: 'ANTHROPIC_API_KEY가 설정되지 않았어요.' })
+    return
+  }
+
+  const { image, mediaType, language } = req.body ?? {}
+  if (!image || !mediaType) {
+    res.status(400).json({ error: 'image(base64)와 mediaType이 필요해요.' })
+    return
+  }
+
+  const languageLabel = LANGUAGE_NAMES[language] ?? LANGUAGE_NAMES.ko
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: 700,
+        system: buildSystemPrompt(languageLabel),
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: image } },
+              { type: 'text', text: '이 상품을 분석해서 스키마대로 JSON만 응답해줘.' },
+            ],
+          },
+        ],
+      }),
+    })
+
+    if (!response.ok) {
+      const errText = await response.text()
+      console.error('Anthropic API error:', errText)
+      res.status(502).json({ error: 'AI 분석 중 오류가 발생했어요.' })
+      return
+    }
+
+    const data = await response.json()
+    const textBlock = data.content?.find((b) => b.type === 'text')
+    const cleaned = (textBlock?.text ?? '').replace(/```json|```/g, '').trim()
+
+    let parsed
+    try {
+      parsed = JSON.parse(cleaned)
+    } catch {
+      console.error('JSON parse 실패:', cleaned)
+      res.status(502).json({ error: 'AI 응답을 해석하지 못했어요.' })
+      return
+    }
+
+    res.status(200).json(parsed)
+  } catch (err) {
+    console.error('scan handler 오류:', err)
+    res.status(500).json({ error: '서버 오류가 발생했어요.' })
+  }
+}
