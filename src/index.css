@@ -183,6 +183,7 @@ button:active {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: center; /* 내용이 화면보다 짧으면 가운데로, 길면 자연스럽게 스크롤 */
   gap: 22px;
 }
 
