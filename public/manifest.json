@@ -1,11 +1,11 @@
 {
-  "name": "편의점, 어디까지 써봤니",
-  "short_name": "편의점 스캔",
-  "description": "여행 중 편의점 상품을 스캔하면 AI가 3초 안에 알려줘요",
+  "name": "KonbiniSnap - 편의점, 어디까지 써봤니",
+  "short_name": "KonbiniSnap",
+  "description": "여행 중 편의점 상품을 사진으로 찍으면 AI가 3초 안에 알려줘요",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#12181C",
-  "theme_color": "#12181C",
+  "background_color": "#0f1b2e",
+  "theme_color": "#0f1b2e",
   "orientation": "portrait",
   "icons": [
     {
