@@ -102,13 +102,6 @@ button:active {
     right: 0;
     bottom: 0;
     z-index: 20;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  /* 고정된 하단 탭바에 마지막 콘텐츠가 가려지지 않도록 여백 확보
-     (탭바 자체 높이 ~90px + 여유분 + 기기 하단 제스처 바 영역까지 고려) */
-  .main-scroll {
-    padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -1246,4 +1239,27 @@ button:active {
   font-size: 12px;
   line-height: 1.6;
   color: #3a2f0a;
+}
+
+/* =====================================================
+   모바일 좁은 화면 최종 보정 — 반드시 파일 맨 끝에 위치할 것!
+   .main-scroll과 .bottom-nav의 기본(non-media) 규칙이 이 파일
+   뒤쪽에 따로 정의돼 있어서, 같은 우선순위(specificity)일 때는
+   "나중에 선언된 규칙"이 이기는 CSS 캐스케이드 규칙상
+   이 보정값이 위쪽 미디어쿼리에 있으면 기본 규칙에 덮여써져
+   무시된다. 그래서 일부러 파일 맨 끝으로 옮겨둠 — 절대 위로
+   옮기지 말 것 (후기가 길 때 하단 탭바에 콘텐츠가 가려지는
+   버그의 원인이었음).
+   ===================================================== */
+@media (max-width: 480px) {
+  /* 고정된 하단 탭바에 마지막 콘텐츠(다시 스캔 버튼 등)가 가려지지
+     않도록 여백 확보 (탭바 자체 높이 ~90px + 여유분 + 기기 하단
+     제스처 바 영역까지 고려) */
+  .main-scroll {
+    padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-nav {
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  }
 }
