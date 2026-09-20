@@ -371,6 +371,25 @@ button:active {
   font-size: 12.5px;
   color: var(--ink-soft);
 }
+
+.scan-loading-tip {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--ink-soft);
+  opacity: 0.75;
+  animation: scanTipFade 0.35s ease;
+}
+
+@keyframes scanTipFade {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 0.75;
+    transform: translateY(0);
+  }
+}
 .scan-error-text {
   color: var(--sticker-deep);
   font-size: 13px;
