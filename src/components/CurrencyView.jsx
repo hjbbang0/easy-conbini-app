@@ -66,7 +66,7 @@ export default function CurrencyView({ t, countries, selectedCountry, onSelectCo
         {status === 'ready' && (
           <p className="currency-result-value">
             {t.currencyResultPrefix} {converted !== null ? converted.toLocaleString() : '0'}
-            <span className="currency-result-unit">원</span>
+            <span className="currency-result-unit">{t.currencyWonUnit}</span>
           </p>
         )}
       </div>
