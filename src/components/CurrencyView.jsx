@@ -78,7 +78,7 @@ export default function CurrencyView({ t, countries, selectedCountry, onSelectCo
         <div className="affiliate-banner-group">
           <p className="affiliate-banner-eyebrow">여행 준비, 이것도 챙기세요</p>
           {AFFILIATE_LINKS.filter((item) => item.url).map((item) => (
-            
+            <a
               key={item.id}
               href={item.url}
               target="_blank"
@@ -86,7 +86,7 @@ export default function CurrencyView({ t, countries, selectedCountry, onSelectCo
               className="affiliate-banner"
             >
               <span className="affiliate-banner-icon" aria-hidden="true">
-                {{item.icon}
+                {item.icon}
               </span>
               <span className="affiliate-banner-text">
                 <span className="affiliate-banner-label">{item.label}</span>
