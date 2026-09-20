@@ -86,7 +86,7 @@ export default function CurrencyView({ t, countries, selectedCountry, onSelectCo
               className="affiliate-banner"
             >
               <span className="affiliate-banner-icon" aria-hidden="true">
-                {item.icon}
+                {{item.icon}
               </span>
               <span className="affiliate-banner-text">
                 <span className="affiliate-banner-label">{item.label}</span>
