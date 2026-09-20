@@ -42,7 +42,7 @@ export default function CurrencyView({ t, countries, selectedCountry, onSelectCo
             className={`currency-chip ${selectedCountry.code === c.code ? 'is-active' : ''}`}
             onClick={() => onSelectCountry(c)}
           >
-            {c.symbol} {c.name}
+            {c.symbol} {t.countryNames[c.code]}
           </button>
         ))}
       </div>
