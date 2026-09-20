@@ -186,6 +186,11 @@ button:active {
   color: var(--neon);
 }
 
+.lang-dropdown-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
 .lang-dropdown-caret {
   font-size: 10px;
   transition: transform 0.15s ease;
