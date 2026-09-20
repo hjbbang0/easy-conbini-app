@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { fetchKrwRate } from '../utils/exchangeRate.js'
-import { AFFILIATE_LINKS } from '../data/affiliateLinks.js'
 
 export default function CurrencyView({ t, countries, selectedCountry, onSelectCountry }) {
   const [amount, setAmount] = useState('')
@@ -73,35 +72,6 @@ export default function CurrencyView({ t, countries, selectedCountry, onSelectCo
       </div>
 
       <p className="currency-note">{t.currencySourceNote}</p>
-
-      {AFFILIATE_LINKS.some((item) => item.url) && (
-        <div className="affiliate-banner-group">
-          <p className="affiliate-banner-eyebrow">여행 준비, 이것도 챙기세요</p>
-          {AFFILIATE_LINKS.filter((item) => item.url).map((item) => (
-            <a
-              key={item.id}
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className="affiliate-banner"
-            >
-              <span className="affiliate-banner-icon" aria-hidden="true">
-                {item.icon}
-              </span>
-              <span className="affiliate-banner-text">
-                <span className="affiliate-banner-label">{item.label}</span>
-                <span className="affiliate-banner-sub">{item.sub}</span>
-              </span>
-              <span className="affiliate-banner-arrow" aria-hidden="true">
-                →
-              </span>
-            </a>
-          ))}
-          <p className="affiliate-banner-disclosure">
-            광고: 위 링크로 구매·예약하시면 콘비니스냅이 제휴사로부터 수수료를 받습니다.
-          </p>
-        </div>
-      )}
     </div>
   )
 }
