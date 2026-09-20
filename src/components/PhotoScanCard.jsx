@@ -31,7 +31,7 @@ export default function PhotoScanCard({ t, status, onFileSelected, errorMessage 
 
       {status === 'loading' && (
         <div className="scan-loading">
-          <ScanLoadingRing label={t.scanLoading} />
+          <ScanLoadingRing label={t.scanLoading} tips={t.scanLoadingTips} />
         </div>
       )}
 

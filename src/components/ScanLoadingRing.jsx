@@ -4,8 +4,9 @@ const RADIUS = 36
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 const EMOJIS = ['🍣', '🍚', '☕', '🍕', '🍡', '🍙']
 
-export default function ScanLoadingRing({ label }) {
+export default function ScanLoadingRing({ label, tips }) {
   const [percent, setPercent] = useState(4)
+  const [tipIndex, setTipIndex] = useState(0)
 
   useEffect(() => {
     // 실제 완료 시점을 모르기 때문에, 92%까지는 점점 느려지며 채워지다가
@@ -20,6 +21,14 @@ export default function ScanLoadingRing({ label }) {
     }, 180)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (!tips || tips.length === 0) return
+    const tipInterval = setInterval(() => {
+      setTipIndex((prev) => (prev + 1) % tips.length)
+    }, 1900)
+    return () => clearInterval(tipInterval)
+  }, [tips])
 
   const offset = CIRCUMFERENCE * (1 - percent / 100)
 
@@ -60,6 +69,11 @@ export default function ScanLoadingRing({ label }) {
       </div>
 
       <p className="scan-loading-label">{label}</p>
+      {tips && tips.length > 0 && (
+        <p key={tipIndex} className="scan-loading-tip">
+          {tips[tipIndex]}
+        </p>
+      )}
     </div>
   )
 }
