@@ -74,7 +74,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 700,
-        system: buildSystemPrompt(languageLabel),
+        system: [{ type: 'text', text: buildSystemPrompt(languageLabel), cache_control: { type: 'ephemeral' } }],
         messages: [
           {
             role: 'user',
