@@ -156,34 +156,84 @@ button:active {
 }
 
 /* =====================================================
-   언어 탭
+   언어 드롭다운
    ===================================================== */
-.lang-tabs {
+.lang-dropdown {
+  position: relative;
   display: flex;
-  background: transparent;
+  justify-content: flex-end;
+  padding: 8px 14px;
   border-bottom: 1px solid var(--line-dark);
-  overflow-x: auto;
 }
 
-.lang-tab {
-  flex: 1;
-  min-width: max-content;
-  padding: 10px 14px;
-  border: none;
-  background: none;
+.lang-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
 }
 
-.lang-tab.is-active {
+.lang-dropdown-trigger:hover,
+.lang-dropdown-trigger:focus-visible {
+  border-color: var(--neon);
   color: var(--neon);
-  border-bottom-color: var(--neon);
+}
+
+.lang-dropdown-caret {
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.lang-dropdown-caret.is-open {
+  transform: rotate(180deg);
+}
+
+.lang-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 14px;
+  min-width: 140px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #10161c;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 6px;
+  margin: 0;
+  list-style: none;
+  z-index: 20;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.lang-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+
+.lang-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.lang-dropdown-item.is-active {
+  color: var(--neon);
   font-weight: 600;
-  text-shadow: 0 0 8px var(--neon-glow);
 }
 
 /* =====================================================
@@ -846,9 +896,6 @@ button:active {
 }
 
 .affiliate-banner-group {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 2px dashed var(--line);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1057,6 +1104,10 @@ button:active {
   font-size: 11px;
   color: var(--ink-soft);
   margin: 0 0 8px;
+}
+
+.my-section {
+  margin-bottom: 20px;
 }
 
 .my-lang-grid {
