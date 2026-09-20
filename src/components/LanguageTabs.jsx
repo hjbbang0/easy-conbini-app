@@ -25,6 +25,9 @@ export default function LanguageTabs({ language, onChange }) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
+        <span className="lang-dropdown-icon" aria-hidden="true">
+          🌐
+        </span>
         <span>{current.label}</span>
         <span className={`lang-dropdown-caret ${open ? 'is-open' : ''}`} aria-hidden="true">
           ▾
