@@ -1,9 +1,9 @@
 export const LANGUAGES = [
-  { code: 'ko', label: '대한민국' },
-  { code: 'ja', label: '일본' },
+  { code: 'ko', label: '한국어' },
+  { code: 'ja', label: '日本語' },
   { code: 'en', label: 'English' },
-  { code: 'zh-TW', label: '대만' },
-  { code: 'zh-CN', label: '중국' },
+  { code: 'zh-TW', label: '繁體中文' },
+  { code: 'zh-CN', label: '简体中文' },
   { code: 'th', label: 'ไทย' },
 ]
 
