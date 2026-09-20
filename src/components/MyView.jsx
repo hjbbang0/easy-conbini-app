@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { LANGUAGES } from '../i18n/translations.js'
 import { AFFILIATE_LINKS } from '../data/affiliateLinks.js'
+import PolicyModal from './PolicyModal.jsx'
 
 const AFFILIATE_TEXT_KEYS = {
   esim: { label: 'affiliateEsimLabel', sub: 'affiliateEsimSub' },
@@ -45,6 +47,7 @@ function AffiliateGroup({ title, items, t }) {
 }
 
 export default function MyView({ t, language, onChangeLanguage, premium, scanCount, onResetPremium }) {
+  const [showPolicy, setShowPolicy] = useState(false)
   const liveLinks = AFFILIATE_LINKS.filter((item) => item.url)
   const beforeItems = liveLinks.filter((item) => item.group === 'before')
   const duringItems = liveLinks.filter((item) => item.group === 'during')
@@ -86,6 +89,12 @@ export default function MyView({ t, language, onChangeLanguage, premium, scanCou
           {t.myDevReset}
         </button>
       )}
+
+      <button className="my-policy-link" onClick={() => setShowPolicy(true)}>
+        {t.myPolicyLink}
+      </button>
+
+      <PolicyModal open={showPolicy} onClose={() => setShowPolicy(false)} />
     </div>
   )
 }
