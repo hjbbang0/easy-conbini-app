@@ -23,7 +23,7 @@ function AffiliateGroup({ title, items, t }) {
           return (
             <a
               key={item.id}
-              href={item.url}
+              href={item.resolvedUrl}
               target="_blank"
               rel="noopener noreferrer sponsored"
               className="affiliate-banner"
@@ -48,7 +48,11 @@ function AffiliateGroup({ title, items, t }) {
 
 export default function MyView({ t, language, onChangeLanguage, premium, scanCount, onResetPremium }) {
   const [showPolicy, setShowPolicy] = useState(false)
-  const liveLinks = AFFILIATE_LINKS.filter((item) => item.url)
+  // 언어별 링크(urls)가 있으면 우선 사용하고, 없으면 기본 url을 사용합니다. 둘 다 없으면 노출하지 않습니다.
+  const liveLinks = AFFILIATE_LINKS.map((item) => ({
+    ...item,
+    resolvedUrl: (item.urls && item.urls[language]) || item.url,
+  })).filter((item) => item.resolvedUrl)
   const beforeItems = liveLinks.filter((item) => item.group === 'before')
   const duringItems = liveLinks.filter((item) => item.group === 'during')
 
