@@ -9,7 +9,17 @@ export const AFFILIATE_LINKS = [
     id: 'esim',
     icon: '📶',
     group: 'before',
-    url: 'https://airalo.tpx.lv/xGsOuZzZ', // Konbinisnap 프로젝트에서 발급 (Sub ID: app-my-esim)
+    // 앱 언어에 맞는 Airalo 화면(주소에 언어 코드 포함)으로 연결합니다. 모두 Konbinisnap 프로젝트에서 발급.
+    // Sub ID: app-my-esim-{언어}. 아래에 없는 언어는 기본 url(언어 자동 감지)로 연결됩니다.
+    urls: {
+      ko: 'https://airalo.tpx.lv/wAjNZs4F',
+      en: 'https://airalo.tpx.lv/UOl5tYZZ',
+      ja: 'https://airalo.tpx.lv/dFQGai87',
+      'zh-CN': 'https://airalo.tpx.lv/bQRpHLpc',
+      'zh-TW': 'https://airalo.tpx.lv/1IeBnp0Y',
+      th: 'https://airalo.tpx.lv/ned8CPl3',
+    },
+    url: 'https://airalo.tpx.lv/xGsOuZzZ', // 기본(언어 자동 감지) 링크 (Sub ID: app-my-esim)
   },
   {
     id: 'insurance',
