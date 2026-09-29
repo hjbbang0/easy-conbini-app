@@ -930,27 +930,46 @@ button:active {
 }
 
 .affiliate-banner {
+  --accent: var(--sticker);
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--paper-dim);
+  gap: 12px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--paper-dim));
   border: 2px solid var(--line);
+  border-left: 5px solid var(--accent);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 12px;
   text-decoration: none;
-  transition: transform 0.12s ease, border-color 0.12s ease;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .affiliate-banner:hover,
 .affiliate-banner:focus-visible {
-  border-color: var(--neon-deep);
+  border-color: var(--accent);
+  border-left-color: var(--accent);
   transform: translateY(-1px);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .affiliate-banner-icon {
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
   line-height: 1;
   flex-shrink: 0;
+  background: var(--paper);
+  border-radius: 11px;
+  box-shadow: 0 2px 6px rgba(20, 24, 26, 0.14);
+}
+
+.affiliate-banner-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .affiliate-banner-text {
@@ -964,7 +983,8 @@ button:active {
 .affiliate-banner-label {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 
@@ -974,8 +994,9 @@ button:active {
 }
 
 .affiliate-banner-arrow {
-  font-size: 16px;
-  color: var(--ink-soft);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
