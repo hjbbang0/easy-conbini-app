@@ -8,6 +8,8 @@ export const AFFILIATE_LINKS = [
   {
     id: 'esim',
     icon: '📶',
+    logo: '/icons/partners/airalo.png', // Airalo 로고 (마케팅 임팩트를 위해 이모지 대신 사용)
+    accent: '#FF6A3D', // Airalo 브랜드 컬러(오렌지)
     group: 'before',
     // 앱 언어에 맞는 Airalo 화면(주소에 언어 코드 포함)으로 연결합니다. 모두 Konbinisnap 프로젝트에서 발급.
     // Sub ID: app-my-esim-{언어}. 아래에 없는 언어는 기본 url(언어 자동 감지)로 연결됩니다.
@@ -36,6 +38,8 @@ export const AFFILIATE_LINKS = [
   {
     id: 'klook',
     icon: '🎟️',
+    logo: '/icons/partners/klook.png', // Klook 로고
+    accent: '#FF5B00', // Klook 브랜드 컬러(오렌지)
     group: 'during',
     // 앱 언어에 맞는 Klook 액티비티 화면으로 연결합니다. Sub ID: app-my-klook-{언어}.
     urls: {
@@ -51,6 +55,8 @@ export const AFFILIATE_LINKS = [
   {
     id: 'transfer',
     icon: '🚕',
+    logo: '/icons/partners/klook.png', // 공항 픽업도 Klook 페이지로 연결되므로 동일 로고 사용
+    accent: '#FF5B00',
     group: 'during',
     // Klook 공항 픽업/샌딩 페이지. 앱 언어에 맞는 화면으로 연결합니다. Sub ID: app-my-transfer-{언어}.
     urls: {
