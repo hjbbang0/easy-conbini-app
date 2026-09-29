@@ -37,16 +37,31 @@ export const AFFILIATE_LINKS = [
     id: 'klook',
     icon: '🎟️',
     group: 'during',
-    // 한국어 Klook 페이지(/ko/)로 가는 링크라서 한국어 화면에서만 노출합니다. (Sub ID: app-my-klook)
-    // 다른 언어용 링크를 만들면 urls 에 추가하거나, 기본 url 에 넣으세요.
-    urls: { ko: 'https://klook.tpx.lv/q28zhItD' },
+    // 앱 언어에 맞는 Klook 액티비티 화면으로 연결합니다. Sub ID: app-my-klook-{언어}.
+    urls: {
+      ko: 'https://klook.tpx.lv/q28zhItD',
+      en: 'https://klook.tpx.lv/BLhT13VQ',
+      ja: 'https://klook.tpx.lv/VCyXUCT8',
+      'zh-CN': 'https://klook.tpx.lv/9e6UzKZk',
+      'zh-TW': 'https://klook.tpx.lv/GSVUU5eU',
+      th: 'https://klook.tpx.lv/fsn1xtGq',
+    },
     url: '',
   },
   {
     id: 'transfer',
     icon: '🚕',
     group: 'during',
-    url: '', // 승인되면 여기에 실제 추적 링크를 넣으세요
+    // Klook 공항 픽업/샌딩 페이지. 앱 언어에 맞는 화면으로 연결합니다. Sub ID: app-my-transfer-{언어}.
+    urls: {
+      ko: 'https://klook.tpx.lv/2T2uW21T',
+      en: 'https://klook.tpx.lv/UTNtNlTB',
+      ja: 'https://klook.tpx.lv/dl6kqk8T',
+      'zh-CN': 'https://klook.tpx.lv/oV4TOtxY',
+      'zh-TW': 'https://klook.tpx.lv/LXOWCtYr',
+      th: 'https://klook.tpx.lv/rTnSJoVU',
+    },
+    url: '',
   },
   {
     id: 'rentalcars',
