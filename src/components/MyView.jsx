@@ -27,9 +27,14 @@ function AffiliateGroup({ title, items, t }) {
               target="_blank"
               rel="noopener noreferrer sponsored"
               className="affiliate-banner"
+              style={item.accent ? { '--accent': item.accent } : undefined}
             >
               <span className="affiliate-banner-icon" aria-hidden="true">
-                {item.icon}
+                {item.logo ? (
+                  <img className="affiliate-banner-logo" src={item.logo} alt="" loading="lazy" />
+                ) : (
+                  item.icon
+                )}
               </span>
               <span className="affiliate-banner-text">
                 <span className="affiliate-banner-label">{t[keys.label]}</span>
