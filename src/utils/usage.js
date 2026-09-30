@@ -4,6 +4,7 @@
 
 const SCAN_COUNT_KEY = 'travelConbini.scanCount'
 const PREMIUM_KEY = 'travelConbini.isPremium'
+const HOME_PROMPT_SEEN_KEY = 'travelConbini.homePromptSeen'
 
 export const FREE_SCAN_LIMIT = 5
 
@@ -38,6 +39,23 @@ export function isPremium() {
 export function setPremium(value) {
   try {
     localStorage.setItem(PREMIUM_KEY, value ? 'true' : 'false')
+  } catch {
+    // 무시
+  }
+}
+
+// 화면 처음 켤 때 딱 한 번만 보여주는 "홈 화면에 추가" 안내 팝업용.
+export function hasSeenHomePrompt() {
+  try {
+    return localStorage.getItem(HOME_PROMPT_SEEN_KEY) === 'true'
+  } catch {
+    return true // 저장소를 못 읽으면 계속 뜨는 것보단 안 뜨는 쪽이 안전
+  }
+}
+
+export function markHomePromptSeen() {
+  try {
+    localStorage.setItem(HOME_PROMPT_SEEN_KEY, 'true')
   } catch {
     // 무시
   }
