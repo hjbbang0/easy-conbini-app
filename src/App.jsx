@@ -6,12 +6,21 @@ import SummaryReceipt from './components/SummaryReceipt.jsx'
 import UnreadableCard from './components/UnreadableCard.jsx'
 import PaywallCard from './components/PaywallCard.jsx'
 import InAppBrowserBanner from './components/InAppBrowserBanner.jsx'
+import AddToHomeModal from './components/AddToHomeModal.jsx'
 import BottomNav from './components/BottomNav.jsx'
 import CurrencyView from './components/CurrencyView.jsx'
 import RecipeView from './components/RecipeView.jsx'
 import MyView from './components/MyView.jsx'
-import { MOCK_SCAN_RESULT, COUNTRIES } from './data/mockData.js'
-import { FREE_SCAN_LIMIT, getScanCount, incrementScanCount, isPremium, setPremium } from './utils/usage.js'
+import { COUNTRIES } from './data/mockData.js'
+import {
+  FREE_SCAN_LIMIT,
+  getScanCount,
+  incrementScanCount,
+  isPremium,
+  setPremium,
+  hasSeenHomePrompt,
+  markHomePromptSeen,
+} from './utils/usage.js'
 import { isKakaoInApp } from './utils/browserDetect.js'
 import { resizeAndEncode } from './utils/imageResize.js'
 import { getDictionary } from './i18n/translations.js'
@@ -48,12 +57,22 @@ export default function App() {
   const [scanCount, setScanCount] = useState(0)
   const [premium, setPremiumState] = useState(false)
   const [showInAppWarning, setShowInAppWarning] = useState(false)
+  const [showHomePrompt, setShowHomePrompt] = useState(false)
 
   useEffect(() => {
     setScanCount(getScanCount())
     setPremiumState(isPremium())
-    setShowInAppWarning(isKakaoInApp())
+    const inApp = isKakaoInApp()
+    setShowInAppWarning(inApp)
+    if (!inApp && !hasSeenHomePrompt()) {
+      setShowHomePrompt(true)
+    }
   }, [])
+
+  function handleCloseHomePrompt() {
+    setShowHomePrompt(false)
+    markHomePromptSeen()
+  }
 
   const remaining = Math.max(FREE_SCAN_LIMIT - scanCount, 0)
   const isPaywalled = !premium && remaining <= 0
@@ -99,13 +118,15 @@ export default function App() {
       // 2단계: 실제 후기는 백그라운드에서 조용히 찾아서 나중에 업데이트
       fetchReviews(data, thisScanId)
     } catch (err) {
-      console.warn('AI 분석 실패, 데모 데이터로 대체:', err)
+      // 예전에는 실패하면 항상 똑같은 데모 상품(mockData.js)을 진짜 결과인 척 보여줬어요.
+      // 그러면 사용자는 자기가 스캔한 것과 전혀 다른 상품이 나와도 그게 실제 분석 결과인 줄
+      // 알게 되고, 실패가 반복되면(예: 일시적 서버 오류) 매번 같은 가짜 결과만 보게 돼요 —
+      // 신뢰를 잃기 딱 좋은 상황이라 제거했어요. 이제는 정직하게 "실패했어요, 다시 시도해주세요"
+      // 오류 화면을 보여주고 바로 재시도할 수 있게 해요.
+      console.warn('AI 분석 실패:', err)
       if (scanIdRef.current !== thisScanId) return
-      setResult(MOCK_SCAN_RESULT)
-      setLastProduct(MOCK_SCAN_RESULT)
-      setIsFallback(true)
-      setScanStatus('done')
-      setReviewStatus('idle') // 데모 데이터일 땐 실제 검색을 돌리지 않음
+      setScanStatus('error')
+      setErrorMessage(null) // PhotoScanCard가 언어별 기본 문구(scanErrorDefault)를 보여줘요
     }
   }
 
@@ -222,6 +243,8 @@ export default function App() {
 
         <BottomNav t={t} active={activeTab} onChange={setActiveTab} />
       </div>
+
+      {showHomePrompt && <AddToHomeModal t={t} onClose={handleCloseHomePrompt} />}
     </div>
   )
 }

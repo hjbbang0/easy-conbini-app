@@ -1298,6 +1298,62 @@ button:active {
 }
 
 /* =====================================================
+   홈 화면 추가 안내 팝업 (AddToHomeModal) — .policy-overlay/
+   .policy-sheet/.policy-tabs/.policy-close/.policy-body 재사용
+   ===================================================== */
+.home-prompt-sheet {
+  max-height: 70vh;
+}
+
+.home-prompt-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.home-prompt-desc {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.home-prompt-steps {
+  margin: 0 0 20px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-prompt-steps li {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.home-prompt-confirm {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: var(--neon);
+  color: var(--night-deep);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.home-prompt-confirm:hover,
+.home-prompt-confirm:focus-visible {
+  background: var(--neon-deep);
+  color: var(--paper);
+}
+
+/* =====================================================
    하단 탭 네비게이션 — 초밥/비빔밥/커피/피자 아이콘
    ===================================================== */
 .bottom-nav {
