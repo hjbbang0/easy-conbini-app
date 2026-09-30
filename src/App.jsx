@@ -87,9 +87,6 @@ export default function App() {
     setErrorMessage(null)
     setReviewStatus('idle')
 
-    const nextCount = incrementScanCount()
-    setScanCount(nextCount)
-
     try {
       const { base64, mediaType } = await resizeAndEncode(file)
 
@@ -106,9 +103,15 @@ export default function App() {
       if (scanIdRef.current !== thisScanId) return // 그 사이 새 스캔이 시작됐으면 무시
 
       if (data.unreadable) {
+        // 사진 자체가 안 읽혀서 결과를 못 준 거라 무료 횟수를 깎지 않아요.
+        // 사용자 잘못이 아닌데 차감되면 "찍을 때마다 손해"라는 느낌을 줘서 초반 이탈로 이어져요.
         setScanStatus('unreadable')
         return
       }
+
+      // 무료 스캔은 실제로 결과를 받았을 때만 차감해요.
+      const nextCount = incrementScanCount()
+      setScanCount(nextCount)
 
       setResult(data)
       setLastProduct(data)
@@ -122,7 +125,7 @@ export default function App() {
       // 그러면 사용자는 자기가 스캔한 것과 전혀 다른 상품이 나와도 그게 실제 분석 결과인 줄
       // 알게 되고, 실패가 반복되면(예: 일시적 서버 오류) 매번 같은 가짜 결과만 보게 돼요 —
       // 신뢰를 잃기 딱 좋은 상황이라 제거했어요. 이제는 정직하게 "실패했어요, 다시 시도해주세요"
-      // 오류 화면을 보여주고 바로 재시도할 수 있게 해요.
+      // 오류 화면을 보여주고 바로 재시도할 수 있게 해요. 이때도 무료 횟수는 안 깎여요.
       console.warn('AI 분석 실패:', err)
       if (scanIdRef.current !== thisScanId) return
       setScanStatus('error')
