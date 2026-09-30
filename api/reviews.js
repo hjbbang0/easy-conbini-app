@@ -64,7 +64,10 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 600,
+        max_tokens: 1200,
+        // scan.js와 같은 이유로 생각(thinking)을 꺼서 max_tokens 예산이 전부 JSON 응답에만
+        // 쓰이도록 합니다. (검색 도구 사용 자체에는 영향 없어요.)
+        thinking: { type: 'disabled' },
         system: [{ type: 'text', text: buildSystemPrompt(languageLabel), cache_control: { type: 'ephemeral' } }],
         tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 1 }],
         messages: [

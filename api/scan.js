@@ -73,7 +73,13 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 700,
+        max_tokens: 1024,
+        // Claude Sonnet 5부터는 thinking 필드를 안 주면 기본적으로 내부적으로 '생각'을 먼저 하고,
+        // 그 생각한 토큰도 max_tokens 예산에서 깎여요. 사진 하나 보고 짧은 JSON만 뱉으면 되는
+        // 단순 작업이라 생각이 필요 없는데, 생각이 예산을 다 먹어버리면 정작 JSON 응답이
+        // 텅 비거나 잘려서 파싱에 실패하고, 그때마다 화면엔 항상 같은 데모 상품(mockData.js)이
+        // 뜨는 버그로 이어졌어요. 그래서 이 작업에는 생각을 아예 꺼둡니다.
+        thinking: { type: 'disabled' },
         system: [{ type: 'text', text: buildSystemPrompt(languageLabel), cache_control: { type: 'ephemeral' } }],
         messages: [
           {
