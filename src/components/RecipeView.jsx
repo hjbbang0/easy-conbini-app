@@ -16,14 +16,18 @@ export default function RecipeView({ t, lastProduct, onGoScan }) {
       <p className="recipe-product-name">{lastProduct.productName}</p>
       <p className="recipe-ai-note">{t.recipeAiNote}</p>
 
-      <ul className="recipe-list">
-        {(lastProduct.recipeIdeas ?? []).map((idea, i) => (
-          <li key={i} className="recipe-item">
-            <span className="recipe-item-number">{i + 1}</span>
-            <span>{idea}</span>
-          </li>
-        ))}
-      </ul>
+      {(lastProduct.recipeIdeas ?? []).length > 0 ? (
+        <ul className="recipe-list">
+          {lastProduct.recipeIdeas.map((idea, i) => (
+            <li key={i} className="recipe-item">
+              <span className="recipe-item-number">{i + 1}</span>
+              <span>{idea}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="recipe-empty-text">{t.recipeNotFood}</p>
+      )}
     </div>
   )
 }
