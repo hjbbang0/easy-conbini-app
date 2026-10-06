@@ -3,12 +3,15 @@
 // 실제 후기는 /api/reviews가 이어서 백그라운드로 찾아요.
 // 사진 자체를 못 읽으면 절대 추측하지 않고 재촬영을 요청합니다.
 
+import { classifyAnthropicFailure, alertOwnerWithin } from '../ownerAlert.js'
+
 const LANGUAGE_NAMES = {
   ko: '한국어',
   ja: '일본어(日本語)',
   en: 'English',
   'zh-TW': '번체 중국어(繁體中文, 대만식)',
   'zh-CN': '간체 중국어(简体中文)',
+  th: '태국어(ภาษาไทย)',
 }
 
 function buildSystemPrompt(languageLabel) {
@@ -50,6 +53,33 @@ function buildSystemPrompt(languageLabel) {
 }`
 }
 
+
+// ── 방어 장치 (홍보로 트래픽이 몰리거나 누가 API를 직접 두드려도 비용이 새지 않게) ──
+// 서버리스 특성상 인스턴스마다 따로 세는 "최선 노력" 제한이에요. 완벽한 차단이 아니라
+// 과도한 남용(봇, 무한 반복)을 막는 용도예요. 한국 통신사는 여러 사람이 같은 IP를 공유하니
+// 일반 사용자는 걸리지 않을 만큼 넉넉하게 잡았어요.
+const ALLOWED_LANGUAGES = new Set(['ko', 'ja', 'en', 'zh-TW', 'zh-CN', 'th'])
+const hitLog = new Map() // ip -> 최근 요청 시각들
+
+function isRateLimited(req, maxHits, windowMs) {
+  const ip = String(req.headers?.['x-forwarded-for'] ?? req.socket?.remoteAddress ?? 'unknown')
+    .split(',')[0]
+    .trim()
+  const now = Date.now()
+  const recent = (hitLog.get(ip) ?? []).filter((t) => now - t < windowMs)
+  recent.push(now)
+  hitLog.set(ip, recent)
+  if (hitLog.size > 5000) {
+    for (const [key, times] of hitLog) {
+      if (times.every((t) => now - t >= windowMs)) hitLog.delete(key)
+    }
+  }
+  return recent.length > maxHits
+}
+
+const ALLOWED_MEDIA_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const MAX_IMAGE_BASE64_CHARS = 3_000_000 // 앱이 1280px로 줄여서 보내서 보통 0.5MB 안팎이에요
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'POST만 지원해요.' })
@@ -62,13 +92,22 @@ export default async function handler(req, res) {
     return
   }
 
+  if (isRateLimited(req, 30, 10 * 60 * 1000)) {
+    res.status(429).json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' })
+    return
+  }
+
   const { image, mediaType, language } = req.body ?? {}
   if (!image || !mediaType) {
     res.status(400).json({ error: 'image(base64)와 mediaType이 필요해요.' })
     return
   }
+  if (typeof image !== 'string' || image.length > MAX_IMAGE_BASE64_CHARS || !ALLOWED_MEDIA_TYPES.has(mediaType)) {
+    res.status(400).json({ error: '지원하지 않는 이미지예요.' })
+    return
+  }
 
-  const languageLabel = LANGUAGE_NAMES[language] ?? LANGUAGE_NAMES.ko
+  const languageLabel = LANGUAGE_NAMES[ALLOWED_LANGUAGES.has(language) ? language : 'ko']
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -103,7 +142,20 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errText = await response.text()
       console.error('Anthropic API error:', errText)
-      res.status(502).json({ error: 'AI 분석 중 오류가 발생했어요.' })
+      const failure = classifyAnthropicFailure(response.status, errText)
+
+      if (failure.kind === 'service_paused') {
+        // 월 지출 한도 소진/API 키 문제 — 운영자가 손써야 풀려요. 카카오톡으로 알리고,
+        // 사용자에게는 원인을 단정하지 않는 "잠시 쉬는 중" 안내만 보여줘요.
+        await alertOwnerWithin({ reason: failure.reason })
+        res.status(503).json({ error: 'AI 분석이 잠시 쉬고 있어요.', code: 'service_paused' })
+        return
+      }
+      if (failure.kind === 'busy') {
+        res.status(503).json({ error: '지금 이용자가 많아요.', code: 'busy' })
+        return
+      }
+      res.status(502).json({ error: 'AI 분석 중 오류가 발생했어요.', code: 'failed' })
       return
     }
 

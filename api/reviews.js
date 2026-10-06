@@ -3,12 +3,15 @@
 // 텍스트만 주고받는 가벼운 요청이고, 화면에는 이미 1단계 결과가 떠 있는 상태에서
 // 조용히 뒤에서 실행돼요.
 
+import { classifyAnthropicFailure, alertOwnerWithin } from '../ownerAlert.js'
+
 const LANGUAGE_NAMES = {
   ko: '한국어',
   ja: '일본어(日本語)',
   en: 'English',
   'zh-TW': '번체 중국어(繁體中文, 대만식)',
   'zh-CN': '간체 중국어(简体中文)',
+  th: '태국어(ภาษาไทย)',
 }
 
 function buildSystemPrompt(languageLabel) {
@@ -34,6 +37,30 @@ web_search 도구를 딱 한 번만 사용해서, 주어진 정확한 상품에 
 }`
 }
 
+
+// ── 방어 장치 (홍보로 트래픽이 몰리거나 누가 API를 직접 두드려도 비용이 새지 않게) ──
+// 서버리스 특성상 인스턴스마다 따로 세는 "최선 노력" 제한이에요. 완벽한 차단이 아니라
+// 과도한 남용(봇, 무한 반복)을 막는 용도예요. 한국 통신사는 여러 사람이 같은 IP를 공유하니
+// 일반 사용자는 걸리지 않을 만큼 넉넉하게 잡았어요.
+const ALLOWED_LANGUAGES = new Set(['ko', 'ja', 'en', 'zh-TW', 'zh-CN', 'th'])
+const hitLog = new Map() // ip -> 최근 요청 시각들
+
+function isRateLimited(req, maxHits, windowMs) {
+  const ip = String(req.headers?.['x-forwarded-for'] ?? req.socket?.remoteAddress ?? 'unknown')
+    .split(',')[0]
+    .trim()
+  const now = Date.now()
+  const recent = (hitLog.get(ip) ?? []).filter((t) => now - t < windowMs)
+  recent.push(now)
+  hitLog.set(ip, recent)
+  if (hitLog.size > 5000) {
+    for (const [key, times] of hitLog) {
+      if (times.every((t) => now - t >= windowMs)) hitLog.delete(key)
+    }
+  }
+  return recent.length > maxHits
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'POST만 지원해요.' })
@@ -46,13 +73,23 @@ export default async function handler(req, res) {
     return
   }
 
-  const { productName, category, language } = req.body ?? {}
-  if (!productName) {
-    res.status(400).json({ error: 'productName이 필요해요.' })
+  if (isRateLimited(req, 60, 10 * 60 * 1000)) {
+    res.status(429).json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' })
     return
   }
 
-  const languageLabel = LANGUAGE_NAMES[language] ?? LANGUAGE_NAMES.ko
+  const { productName, category, language } = req.body ?? {}
+  if (!productName || typeof productName !== 'string') {
+    res.status(400).json({ error: 'productName이 필요해요.' })
+    return
+  }
+  // 검색어로 그대로 들어가니 길이를 제한해서 비용·악용을 막아요.
+  if (productName.length > 200 || (category != null && String(category).length > 100)) {
+    res.status(400).json({ error: '입력이 너무 길어요.' })
+    return
+  }
+
+  const languageLabel = LANGUAGE_NAMES[ALLOWED_LANGUAGES.has(language) ? language : 'ko']
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -82,7 +119,19 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errText = await response.text()
       console.error('Anthropic API error (reviews):', errText)
-      res.status(502).json({ error: '후기 검색 중 오류가 발생했어요.' })
+      const failure = classifyAnthropicFailure(response.status, errText)
+
+      if (failure.kind === 'service_paused') {
+        // 사진 분석(scan)과 같은 원인이라 같은 알림이에요. 6시간에 한 번만 가서 중복되지 않아요.
+        await alertOwnerWithin({ reason: failure.reason })
+        res.status(503).json({ error: '후기 검색이 잠시 쉬고 있어요.', code: 'service_paused' })
+        return
+      }
+      if (failure.kind === 'busy') {
+        res.status(503).json({ error: '지금 이용자가 많아요.', code: 'busy' })
+        return
+      }
+      res.status(502).json({ error: '후기 검색 중 오류가 발생했어요.', code: 'failed' })
       return
     }
 
