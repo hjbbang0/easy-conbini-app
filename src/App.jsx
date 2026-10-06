@@ -5,6 +5,7 @@ import PhotoScanCard from './components/PhotoScanCard.jsx'
 import SummaryReceipt from './components/SummaryReceipt.jsx'
 import UnreadableCard from './components/UnreadableCard.jsx'
 import PaywallCard from './components/PaywallCard.jsx'
+import ServicePausedCard from './components/ServicePausedCard.jsx'
 import InAppBrowserBanner from './components/InAppBrowserBanner.jsx'
 import AddToHomeModal from './components/AddToHomeModal.jsx'
 import BottomNav from './components/BottomNav.jsx'
@@ -20,6 +21,8 @@ import {
   setPremium,
   hasSeenHomePrompt,
   markHomePromptSeen,
+  markServicePaused,
+  isServicePaused,
 } from './utils/usage.js'
 import { isKakaoInApp } from './utils/browserDetect.js'
 import { resizeAndEncode } from './utils/imageResize.js'
@@ -33,6 +36,7 @@ const DISPLAY_FONT_BY_LANG = {
   en: "'Archivo Black', sans-serif",
   'zh-TW': "'Noto Sans TC', sans-serif",
   'zh-CN': "'Noto Sans SC', sans-serif",
+  th: "'Noto Sans Thai', sans-serif",
 }
 
 export default function App() {
@@ -42,13 +46,14 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('scan')
 
   // 스캔 관련 상태
-  const [scanStatus, setScanStatus] = useState('idle') // idle | loading | done | unreadable | error
+  const [scanStatus, setScanStatus] = useState('idle') // idle | loading | done | unreadable | error | paused
   const [result, setResult] = useState(null)
   const [isFallback, setIsFallback] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
   const [lastProduct, setLastProduct] = useState(null) // 레시피 탭에서 참조
-  const [reviewStatus, setReviewStatus] = useState('idle') // idle | loading | done
+  const [reviewStatus, setReviewStatus] = useState('idle') // idle | loading | done | unavailable
   const scanIdRef = useRef(0) // 새 스캔이 시작되면 이전 후기 검색 결과를 무시하기 위한 가드
+  const reviewCacheRef = useRef(new Map()) // 같은 상품의 후기를 같은 접속 중에 또 찾지 않게 (비용 절약)
 
   // 환율 탭에서 선택 중인 나라
   const [currencyCountry, setCurrencyCountry] = useState(COUNTRIES[0])
@@ -62,10 +67,28 @@ export default function App() {
   useEffect(() => {
     setScanCount(getScanCount())
     setPremiumState(isPremium())
+    if (isServicePaused()) setScanStatus('paused')
     const inApp = isKakaoInApp()
     setShowInAppWarning(inApp)
     if (!inApp && !hasSeenHomePrompt()) {
       setShowHomePrompt(true)
+    }
+  }, [])
+
+  // 자정이 지나 하루 한도가 다시 채워졌는데 화면은 예전 상태로 남아 있는 일이 없게,
+  // 앱으로 돌아올 때마다 오늘 사용량을 다시 읽어요.
+  useEffect(() => {
+    function refreshUsage() {
+      if (document.visibilityState !== 'visible') return
+      setScanCount(getScanCount())
+      // 안내 시간이 지났으면 다시 스캔할 수 있게 풀어줘요.
+      setScanStatus((prev) => (prev === 'paused' && !isServicePaused() ? 'idle' : prev))
+    }
+    document.addEventListener('visibilitychange', refreshUsage)
+    window.addEventListener('focus', refreshUsage)
+    return () => {
+      document.removeEventListener('visibilitychange', refreshUsage)
+      window.removeEventListener('focus', refreshUsage)
     }
   }, [])
 
@@ -80,7 +103,15 @@ export default function App() {
   const isResultView = activeTab === 'scan' && scanStatus === 'done' && result && !isPaywalled
 
   async function handleFileSelected(file) {
-    if (isPaywalled) return
+    // 화면에 떠 있는 값이 오래됐을 수 있어서 시작할 때 오늘 사용량을 다시 확인해요.
+    const freshCount = getScanCount()
+    if (freshCount !== scanCount) setScanCount(freshCount)
+    if (!premium && FREE_SCAN_LIMIT - freshCount <= 0) return
+    // 방금 서버가 "잠시 쉬는 중"이라고 했다면 같은 요청을 또 보내지 않고 안내 화면을 보여줘요.
+    if (isServicePaused()) {
+      setScanStatus('paused')
+      return
+    }
 
     const thisScanId = ++scanIdRef.current
     setScanStatus('loading')
@@ -97,7 +128,22 @@ export default function App() {
         body: JSON.stringify({ image: base64, mediaType, language }),
       })
 
-      if (!response.ok) throw new Error('scan-api-failed')
+      if (!response.ok) {
+        // 서버가 "한도·키 문제로 멈춤"(service_paused)인지 "잠깐 바쁨"(busy)인지 알려줘요.
+        const info = await response.json().catch(() => null)
+        if (scanIdRef.current !== thisScanId) return
+        if (info?.code === 'service_paused') {
+          markServicePaused()
+          setScanStatus('paused')
+          return
+        }
+        if (info?.code === 'busy') {
+          setErrorMessage(t.scanBusy)
+          setScanStatus('error')
+          return
+        }
+        throw new Error('scan-api-failed')
+      }
 
       const data = await response.json()
       if (scanIdRef.current !== thisScanId) return // 그 사이 새 스캔이 시작됐으면 무시
@@ -118,8 +164,8 @@ export default function App() {
       setIsFallback(false)
       setScanStatus('done')
 
-      // 2단계: 실제 후기는 백그라운드에서 조용히 찾아서 나중에 업데이트
-      fetchReviews(data, thisScanId)
+      // 실제 후기 검색은 자동으로 하지 않아요. 비용의 대부분이 여기서 나가서,
+      // 사용자가 "실제 후기 찾아보기"를 눌렀을 때만 찾아요 (handleRequestReviews).
     } catch (err) {
       // 예전에는 실패하면 항상 똑같은 데모 상품(mockData.js)을 진짜 결과인 척 보여줬어요.
       // 그러면 사용자는 자기가 스캔한 것과 전혀 다른 상품이 나와도 그게 실제 분석 결과인 줄
@@ -133,7 +179,26 @@ export default function App() {
     }
   }
 
+  function applyReviewData(reviewData) {
+    if (reviewData.hasRealReviews && reviewData.highlights?.length > 0) {
+      setResult((prev) =>
+        prev ? { ...prev, hasRealReviews: true, highlights: reviewData.highlights } : prev
+      )
+      setLastProduct((prev) =>
+        prev ? { ...prev, hasRealReviews: true, highlights: reviewData.highlights } : prev
+      )
+    }
+  }
+
   async function fetchReviews(productData, scanId) {
+    const cacheKey = `${productData.productName}|${language}`
+    const cached = reviewCacheRef.current.get(cacheKey)
+    if (cached) {
+      applyReviewData(cached)
+      setReviewStatus('done')
+      return
+    }
+
     setReviewStatus('loading')
     try {
       const response = await fetch('/api/reviews', {
@@ -145,36 +210,40 @@ export default function App() {
           language,
         }),
       })
-      if (!response.ok) throw new Error('reviews-api-failed')
+      if (!response.ok) {
+        const info = await response.json().catch(() => null)
+        if (scanIdRef.current !== scanId) return
+        if (info?.code === 'service_paused') {
+          markServicePaused()
+          setReviewStatus('unavailable') // 후기 검색이 쉬는 중이라는 안내만 보여줘요
+          return
+        }
+        throw new Error('reviews-api-failed')
+      }
 
       const reviewData = await response.json()
       if (scanIdRef.current !== scanId) return // 그 사이 새 스캔이 시작됐으면 결과 버림
 
+      reviewCacheRef.current.set(cacheKey, reviewData)
       setReviewStatus('done')
-      if (reviewData.hasRealReviews && reviewData.highlights?.length > 0) {
-        setResult((prev) =>
-          prev ? { ...prev, hasRealReviews: true, highlights: reviewData.highlights } : prev
-        )
-        setLastProduct((prev) =>
-          prev ? { ...prev, hasRealReviews: true, highlights: reviewData.highlights } : prev
-        )
-      }
+      applyReviewData(reviewData)
     } catch (err) {
       console.warn('후기 검색 실패, 기존 추정 요약 유지:', err)
       if (scanIdRef.current !== scanId) return
-      setReviewStatus('done')
+      setReviewStatus('idle') // 실패했으면 다시 누를 수 있게 버튼 상태로 되돌려요
     }
   }
 
-  function handleReset() {
-    setScanStatus('idle')
-    setResult(null)
-    setReviewStatus('idle')
+  // "실제 후기 찾아보기" 버튼 — 검색 중이거나 이미 끝났으면 다시 안 나가요 (실패했을 때만 다시 시도 가능).
+  function handleRequestReviews() {
+    if (reviewStatus !== 'idle' || !result || scanStatus !== 'done') return
+    fetchReviews(result, scanIdRef.current)
   }
 
-  function handleSubscribe() {
-    setPremium(true)
-    setPremiumState(true)
+  function handleReset() {
+    setScanStatus(isServicePaused() ? 'paused' : 'idle')
+    setResult(null)
+    setReviewStatus('idle')
   }
 
   function handleResetPremium() {
@@ -197,8 +266,10 @@ export default function App() {
 
           <div key={`${activeTab}-${scanStatus}`} className="view-fade">
             {activeTab === 'scan' &&
-              (isPaywalled && scanStatus !== 'done' ? (
-                <PaywallCard t={t} onSubscribe={handleSubscribe} />
+              (scanStatus === 'paused' ? (
+                <ServicePausedCard t={t} onGoCurrency={() => setActiveTab('currency')} />
+              ) : isPaywalled && scanStatus !== 'done' ? (
+                <PaywallCard t={t} onGoCurrency={() => setActiveTab('currency')} />
               ) : scanStatus === 'unreadable' ? (
                 <UnreadableCard t={t} onRetake={handleReset} />
               ) : scanStatus === 'done' && result ? (
@@ -208,6 +279,7 @@ export default function App() {
                   onReset={handleReset}
                   isFallback={isFallback}
                   reviewStatus={reviewStatus}
+                  onRequestReviews={handleRequestReviews}
                 />
               ) : (
                 <PhotoScanCard
