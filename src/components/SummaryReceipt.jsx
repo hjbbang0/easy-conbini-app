@@ -1,4 +1,4 @@
-export default function SummaryReceipt({ t, result, onReset, isFallback, reviewStatus }) {
+export default function SummaryReceipt({ t, result, onReset, isFallback, reviewStatus, onRequestReviews }) {
   const isLowConfidence = result.confidence === 'low'
   const confidenceLabel = {
     high: t.confidenceHigh,
@@ -53,6 +53,22 @@ export default function SummaryReceipt({ t, result, onReset, isFallback, reviewS
             <span />
           </span>
           {t.reviewSearching}
+        </div>
+      ) : reviewStatus === 'unavailable' ? (
+        // 후기 검색 서비스가 잠시 쉬는 중 — 사진에서 읽은 내용은 그대로 볼 수 있어요
+        <div className="receipt-disclaimer-box receipt-disclaimer-estimate">
+          <span className="receipt-disclaimer-icon" aria-hidden="true">
+            !
+          </span>
+          <p>{t.reviewUnavailable}</p>
+        </div>
+      ) : reviewStatus === 'idle' && !result.hasRealReviews ? (
+        // 아직 후기를 찾아보지 않은 상태 — 눌렀을 때만 웹에서 찾아와요 (비용 절약)
+        <div className="receipt-review-ask">
+          <p className="receipt-review-ask-hint">{t.reviewButtonHint}</p>
+          <button className="receipt-review-ask-button" onClick={onRequestReviews}>
+            {t.reviewButton}
+          </button>
         </div>
       ) : result.hasRealReviews ? (
         <div className="receipt-disclaimer-box receipt-disclaimer-real">
