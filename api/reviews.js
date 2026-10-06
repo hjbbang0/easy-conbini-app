@@ -4,6 +4,7 @@
 // 조용히 뒤에서 실행돼요.
 
 import { classifyAnthropicFailure, alertOwnerWithin } from '../ownerAlert.js'
+import { ensureLanguage } from '../languageGuard.js'
 
 const LANGUAGE_NAMES = {
   ko: '한국어',
@@ -14,8 +15,11 @@ const LANGUAGE_NAMES = {
   th: '태국어(ภาษาไทย)',
 }
 
-function buildSystemPrompt(languageLabel) {
-  return `너는 여행자에게 편의점 상품의 실제 후기를 찾아주는 어시스턴트야.
+function buildSystemPrompt(languageLabel, languageNameEn) {
+  return `OUTPUT LANGUAGE (highest priority): ${languageNameEn}.
+Every human-readable text in your reply (category, highlights, cautionTags, recipeIdeas and any note next to productName) MUST be written in ${languageNameEn}. These instructions are written in Korean, but do NOT answer in Korean unless the output language is Korean. Keep original brand and product names in their original script.
+
+너는 여행자에게 편의점 상품의 실제 후기를 찾아주는 어시스턴트야.
 모든 응답은 ${languageLabel}로 작성해.
 
 web_search 도구를 딱 한 번만 사용해서, 주어진 정확한 상품에 대한 실제 사용자 후기나
@@ -34,7 +38,9 @@ web_search 도구를 딱 한 번만 사용해서, 주어진 정확한 상품에 
 {
   "hasRealReviews": boolean,
   "highlights": string[]
-}`
+}
+
+(Reminder: write the highlights in ${languageNameEn}, translating and paraphrasing the sources even if they are in Korean or Japanese.)`
 }
 
 
@@ -42,6 +48,15 @@ web_search 도구를 딱 한 번만 사용해서, 주어진 정확한 상품에 
 // 서버리스 특성상 인스턴스마다 따로 세는 "최선 노력" 제한이에요. 완벽한 차단이 아니라
 // 과도한 남용(봇, 무한 반복)을 막는 용도예요. 한국 통신사는 여러 사람이 같은 IP를 공유하니
 // 일반 사용자는 걸리지 않을 만큼 넉넉하게 잡았어요.
+const LANGUAGE_NAMES_EN = {
+  ko: 'Korean (한국어)',
+  ja: 'Japanese (日本語)',
+  en: 'English',
+  'zh-TW': 'Traditional Chinese (繁體中文, Taiwan)',
+  'zh-CN': 'Simplified Chinese (简体中文)',
+  th: 'Thai (ภาษาไทย)',
+}
+
 const ALLOWED_LANGUAGES = new Set(['ko', 'ja', 'en', 'zh-TW', 'zh-CN', 'th'])
 const hitLog = new Map() // ip -> 최근 요청 시각들
 
@@ -89,7 +104,9 @@ export default async function handler(req, res) {
     return
   }
 
-  const languageLabel = LANGUAGE_NAMES[ALLOWED_LANGUAGES.has(language) ? language : 'ko']
+  const effectiveLanguage = ALLOWED_LANGUAGES.has(language) ? language : 'ko'
+  const languageLabel = LANGUAGE_NAMES[effectiveLanguage]
+  const languageNameEn = LANGUAGE_NAMES_EN[effectiveLanguage]
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -105,12 +122,12 @@ export default async function handler(req, res) {
         // scan.js와 같은 이유로 생각(thinking)을 꺼서 max_tokens 예산이 전부 JSON 응답에만
         // 쓰이도록 합니다. (검색 도구 사용 자체에는 영향 없어요.)
         thinking: { type: 'disabled' },
-        system: [{ type: 'text', text: buildSystemPrompt(languageLabel), cache_control: { type: 'ephemeral' } }],
+        system: [{ type: 'text', text: buildSystemPrompt(languageLabel, languageNameEn), cache_control: { type: 'ephemeral' } }],
         tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 1 }],
         messages: [
           {
             role: 'user',
-            content: `상품명: ${productName}\n카테고리: ${category ?? '알 수 없음'}\n\n이 상품의 실제 후기를 검색해서 스키마대로 JSON만 응답해줘.`,
+            content: `Product: ${productName}\nCategory: ${category ?? 'unknown'}\n\nSearch for real user reviews of this exact product and reply with the JSON object only. Write the highlights in ${languageNameEn}: translate and paraphrase what you find into ${languageNameEn}, even if the reviews are in Korean or Japanese.`,
           },
         ],
       }),
@@ -154,7 +171,13 @@ export default async function handler(req, res) {
       parsed = JSON.parse(match[0])
     }
 
-    res.status(200).json(parsed)
+    // 후기 출처가 한국어·일본어라서 요약도 그 언어로 오는 일이 있어요. 선택한 언어가 아니면 번역해서 바로잡아요.
+    const finalResult =
+      parsed.hasRealReviews && Array.isArray(parsed.highlights) && parsed.highlights.length > 0
+        ? await ensureLanguage(parsed, { language: effectiveLanguage, languageNameEn, apiKey, keys: ['highlights'] })
+        : parsed
+
+    res.status(200).json(finalResult)
   } catch (err) {
     console.error('reviews handler 오류:', err)
     res.status(500).json({ error: '서버 오류가 발생했어요.' })

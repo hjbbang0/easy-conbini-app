@@ -4,6 +4,7 @@
 // 사진 자체를 못 읽으면 절대 추측하지 않고 재촬영을 요청합니다.
 
 import { classifyAnthropicFailure, alertOwnerWithin } from '../ownerAlert.js'
+import { ensureLanguage } from '../languageGuard.js'
 
 const LANGUAGE_NAMES = {
   ko: '한국어',
@@ -14,8 +15,11 @@ const LANGUAGE_NAMES = {
   th: '태국어(ภาษาไทย)',
 }
 
-function buildSystemPrompt(languageLabel) {
-  return `너는 해외여행 중인 관광객이 편의점·마트·드럭스토어 진열대에서 낯선 상품
+function buildSystemPrompt(languageLabel, languageNameEn) {
+  return `OUTPUT LANGUAGE (highest priority): ${languageNameEn}.
+Every human-readable text in your reply (category, highlights, cautionTags, recipeIdeas and any note next to productName) MUST be written in ${languageNameEn}. These instructions are written in Korean, but do NOT answer in Korean unless the output language is Korean. Keep original brand and product names in their original script.
+
+너는 해외여행 중인 관광객이 편의점·마트·드럭스토어 진열대에서 낯선 상품
 (음식, 음료, 과자뿐 아니라 화장품, 상비약, 생활용품 등 무엇이든)을 스캔했을 때
 핵심 정보를 3초 안에 파악하도록 돕는 어시스턴트야. 모든 응답은 ${languageLabel}로 작성해.
 
@@ -50,7 +54,9 @@ function buildSystemPrompt(languageLabel) {
   "highlights": string[],      // 2~4개. 패키지 관찰 요약.
   "cautionTags": string[],
   "recipeIdeas": string[]      // 음식/음료가 아니면 빈 배열
-}`
+}
+
+(Reminder: write every text value in ${languageNameEn}.)`
 }
 
 
@@ -58,6 +64,15 @@ function buildSystemPrompt(languageLabel) {
 // 서버리스 특성상 인스턴스마다 따로 세는 "최선 노력" 제한이에요. 완벽한 차단이 아니라
 // 과도한 남용(봇, 무한 반복)을 막는 용도예요. 한국 통신사는 여러 사람이 같은 IP를 공유하니
 // 일반 사용자는 걸리지 않을 만큼 넉넉하게 잡았어요.
+const LANGUAGE_NAMES_EN = {
+  ko: 'Korean (한국어)',
+  ja: 'Japanese (日本語)',
+  en: 'English',
+  'zh-TW': 'Traditional Chinese (繁體中文, Taiwan)',
+  'zh-CN': 'Simplified Chinese (简体中文)',
+  th: 'Thai (ภาษาไทย)',
+}
+
 const ALLOWED_LANGUAGES = new Set(['ko', 'ja', 'en', 'zh-TW', 'zh-CN', 'th'])
 const hitLog = new Map() // ip -> 최근 요청 시각들
 
@@ -107,7 +122,9 @@ export default async function handler(req, res) {
     return
   }
 
-  const languageLabel = LANGUAGE_NAMES[ALLOWED_LANGUAGES.has(language) ? language : 'ko']
+  const effectiveLanguage = ALLOWED_LANGUAGES.has(language) ? language : 'ko'
+  const languageLabel = LANGUAGE_NAMES[effectiveLanguage]
+  const languageNameEn = LANGUAGE_NAMES_EN[effectiveLanguage]
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -126,13 +143,13 @@ export default async function handler(req, res) {
         // 텅 비거나 잘려서 파싱에 실패하고, 그때마다 화면엔 항상 같은 데모 상품(mockData.js)이
         // 뜨는 버그로 이어졌어요. 그래서 이 작업에는 생각을 아예 꺼둡니다.
         thinking: { type: 'disabled' },
-        system: [{ type: 'text', text: buildSystemPrompt(languageLabel), cache_control: { type: 'ephemeral' } }],
+        system: [{ type: 'text', text: buildSystemPrompt(languageLabel, languageNameEn), cache_control: { type: 'ephemeral' } }],
         messages: [
           {
             role: 'user',
             content: [
               { type: 'image', source: { type: 'base64', media_type: mediaType, data: image } },
-              { type: 'text', text: '이 상품을 분석해서 스키마대로 JSON만 응답해줘.' },
+              { type: 'text', text: `Analyze this product photo and reply with the JSON object only. Write every text value in ${languageNameEn}.` },
             ],
           },
         ],
@@ -172,7 +189,12 @@ export default async function handler(req, res) {
       return
     }
 
-    res.status(200).json(parsed)
+    // 선택한 언어와 다른 언어(보통 한국어)로 답이 왔으면 번역해서 바로잡아요.
+    const finalResult = parsed.unreadable
+      ? parsed
+      : await ensureLanguage(parsed, { language: effectiveLanguage, languageNameEn, apiKey })
+
+    res.status(200).json(finalResult)
   } catch (err) {
     console.error('scan handler 오류:', err)
     res.status(500).json({ error: '서버 오류가 발생했어요.' })
