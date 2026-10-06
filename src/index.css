@@ -21,7 +21,7 @@
   --line-strong: #14181a;
 
   --font-display: 'Archivo Black', sans-serif; /* App.jsx에서 언어별로 덮어씀 */
-  --font-mono: 'IBM Plex Mono', monospace;
+  --font-mono: 'IBM Plex Mono', 'Noto Sans Thai', monospace; /* 영문·숫자는 Plex Mono, 태국어 글자만 Noto Sans Thai */
 
   --sticker-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
 }
@@ -797,11 +797,40 @@ button:active {
   background: var(--sticker-deep);
 }
 
-.paywall-note {
-  margin: 10px 0 0;
-  font-size: 10.5px;
-  color: var(--ink-soft);
+/* 아직 후기를 안 찾아본 상태: 누르면 웹에서 실제 후기를 찾아와요 */
+.receipt-review-ask {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 2px dashed var(--neon-deep);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--neon) 10%, var(--paper));
   text-align: center;
+}
+
+.receipt-review-ask-hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.receipt-review-ask-button {
+  width: 100%;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--neon);
+  color: var(--night-deep);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 11px;
+  cursor: pointer;
+}
+
+.receipt-review-ask-button:hover,
+.receipt-review-ask-button:focus-visible {
+  background: var(--neon-deep);
+  color: var(--paper);
 }
 
 /* =====================================================
