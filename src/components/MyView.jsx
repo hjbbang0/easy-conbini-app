@@ -103,7 +103,7 @@ export default function MyView({ t, language, onChangeLanguage, premium, scanCou
         {t.myPolicyLink}
       </button>
 
-      <PolicyModal open={showPolicy} onClose={() => setShowPolicy(false)} />
+      <PolicyModal t={t} open={showPolicy} onClose={() => setShowPolicy(false)} />
     </div>
   )
 }

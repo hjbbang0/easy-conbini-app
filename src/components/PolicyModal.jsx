@@ -33,7 +33,7 @@ const POLICY_TEXT = {
   },
 }
 
-export default function PolicyModal({ open, onClose }) {
+export default function PolicyModal({ t, open, onClose }) {
   const [tab, setTab] = useState('privacy')
 
   useEffect(() => {
@@ -50,15 +50,15 @@ export default function PolicyModal({ open, onClose }) {
             className={`policy-tab ${tab === 'privacy' ? 'is-active' : ''}`}
             onClick={() => setTab('privacy')}
           >
-            개인정보처리방침
+            {t.policyTabPrivacy}
           </button>
           <button
             className={`policy-tab ${tab === 'terms' ? 'is-active' : ''}`}
             onClick={() => setTab('terms')}
           >
-            이용약관
+            {t.policyTabTerms}
           </button>
-          <button className="policy-close" onClick={onClose} aria-label="닫기">
+          <button className="policy-close" onClick={onClose} aria-label={t.policyClose}>
             ✕
           </button>
         </div>
