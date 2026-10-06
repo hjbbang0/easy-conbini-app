@@ -92,6 +92,12 @@ export default function App() {
     }
   }, [])
 
+  // 화면 언어에 맞춰 <html lang>을 바꿔요. 안 바꾸면 중국어·일본어 한자가 한국식 글자 모양으로
+  // 보일 수 있고, 브라우저가 태국어·영어 화면을 보고 "한국어 페이지를 번역할까요?"라고 물어볼 수 있어요.
+  useEffect(() => {
+    document.documentElement.lang = language
+  }, [language])
+
   function handleCloseHomePrompt() {
     setShowHomePrompt(false)
     markHomePromptSeen()
